@@ -23,6 +23,7 @@ local plotOwnerMap: { [Model]: Player? } = {}
 
 local DataService: any
 local EconomyService: any
+local ShopService: any
 
 -- Helper to create sturdy anchored parts
 local function createPart(props: { [string]: any }): Part
@@ -415,6 +416,9 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     bellLabel.Font = Enum.Font.GothamBold
     bellLabel.Parent = bellGui
 
+    -- Shop Pad removed: Shop is now at the Central Market Hub
+    -- Core Level Up Pad removed: Use E-key proximity near ManorCore (see CoreUpgradeController)
+
     -- Plot Entrance Gate & Welcome Sign
     local gateArch = createPart({
         Size = Vector3.new(16, 12, 2),
@@ -502,9 +506,10 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     return plotModel
 end
 
-function PlotService.Init(dataServiceRef: any, economyServiceRef: any)
+function PlotService.Init(dataServiceRef: any, economyServiceRef: any, shopServiceRef: any)
     DataService = dataServiceRef
     EconomyService = economyServiceRef
+    ShopService = shopServiceRef
 
     plotsFolder = Workspace:FindFirstChild("Plots") :: Folder
     if not plotsFolder then
@@ -568,6 +573,10 @@ function PlotService.SetupPadListeners()
                     end
                 end)
             end
+
+            -- Shop Pad listener removed: Shop is now at Central Market Hub
+
+            -- Core Level Up Pad listener removed: Handled via E-key proximity in CoreUpgradeController
 
             -- Purchase Pads
             local padsFolder = plotModel:FindFirstChild("Pads")
@@ -764,6 +773,7 @@ function PlotService.AssignPlot(player: Player): Model?
                         buildRoomModel(plotModel, upgrade.Id, plotBase.CFrame)
                     end
                 end
+                PlotService.UpdateCoreLevelPad(plotModel, data.CoreLevel or 1)
             end
 
             PlotService.RefreshPadsVisibility(player)
@@ -819,7 +829,7 @@ function PlotService.ReleasePlot(player: Player)
         builtFolder:ClearAllChildren()
     end
 
-    -- Reset Core HP
+    -- Reset Core HP and level pad
     local manorCore = plotModel:FindFirstChild("ManorCore")
     if manorCore then
         local coreGui = manorCore:FindFirstChild("CoreGui")
@@ -830,6 +840,7 @@ function PlotService.ReleasePlot(player: Player)
             end
         end
     end
+    PlotService.UpdateCoreLevelPad(plotModel, 1)
 
     -- Reset pads
     local padsFolder = plotModel:FindFirstChild("Pads")
@@ -851,6 +862,11 @@ function PlotService.ReleasePlot(player: Player)
             end
         end
     end
+end
+
+function PlotService.UpdateCoreLevelPad(plotModel: Model, level: number)
+    -- CoreLevelPad replaced by E-key proximity system; this function is now a no-op
+    -- Kept for compatibility with ShopService calls
 end
 
 function PlotService.GetPlayerPlot(player: Player): Model?

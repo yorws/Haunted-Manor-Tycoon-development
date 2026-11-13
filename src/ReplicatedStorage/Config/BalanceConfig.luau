@@ -26,12 +26,17 @@ BalanceConfig.Core = {
 
 BalanceConfig.CoreLevels = {
     MaxLevel = 20,
+    -- Cost formula: starts at 100, scales steeply per level
+    -- Lv1->2: 100, Lv2->3: 250, Lv3->4: 450, Lv5->6: 1050, Lv9->10: 3250, Lv10->11: 4000, Lv19->20: 18100
     GetUpgradeCost = function(currentLevel: number): number
-        return currentLevel * 140 -- Lvl 1->2: 140, Lvl 9->10: 1260, Lvl 19->20: 2660
+        -- Base 100, then quadratic: 100 + (level^2 * 25) + (level * 75)
+        return math.floor(100 + (currentLevel * currentLevel * 25) + (currentLevel * 75))
     end,
     GetMaxHp = function(level: number): number
-        return 500 + ((level - 1) * 150) -- Lvl 1: 500, Lvl 10: 1850, Lvl 20: 3350
+        return 500 + ((level - 1) * 200) -- Lvl 1: 500, Lvl 10: 2300, Lvl 20: 4300
     end,
+    -- Proximity radius for E-key interaction (studs from ManorCore)
+    UpgradeInteractRadius = 14,
     Skills = {
         Level10 = {
             Name = "Spectral Retaliation",

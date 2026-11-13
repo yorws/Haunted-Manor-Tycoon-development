@@ -37,6 +37,8 @@ local monsterOwnerMap: { [Model]: Player } = {}
 local DataService: any
 local EconomyService: any
 local PlotService: any
+local ItemDropService: any
+local ShopService: any
 
 -- Helper to create 3D spatial sound
 local function createSpatialSound(parent: Instance, name: string, soundId: string, volume: number, pitch: number): Sound
@@ -254,10 +256,12 @@ local function syncWaveToClient(player: Player, state: PlotWaveState)
     waveEvent:FireClient(player, payload)
 end
 
-function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotServiceRef: any)
+function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotServiceRef: any, itemDropServiceRef: any, shopServiceRef: any)
     DataService = dataServiceRef
     EconomyService = economyServiceRef
     PlotService = plotServiceRef
+    ItemDropService = itemDropServiceRef
+    ShopService = shopServiceRef
 
     local requestStartWaveFn = Network.GetFunction("RequestStartWave")
     requestStartWaveFn.OnServerInvoke = function(player: Player)
@@ -293,6 +297,9 @@ function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotSe
                             end
                         elseif state.Status == "Active" then
                             MonsterService.TickTurrets(player, plot, state)
+                            if ShopService and ShopService.CheckSkills then
+                                ShopService.CheckSkills(player, plot, state)
+                            end
                             syncWaveToClient(player, state)
                         end
 
@@ -336,8 +343,9 @@ end
 function MonsterService.InitPlotWave(player: Player, plotModel: Model)
     local data = DataService.GetData(player)
     local waveNum = if data then data.WaveNumber else 1
+    local coreLvl = if data and data.CoreLevel then data.CoreLevel else 1
 
-    local maxCoreHp = BalanceConfig.Core.BaseMaxHealth
+    local maxCoreHp = BalanceConfig.CoreLevels.GetMaxHp(coreLvl)
     if data and data.UnlockedUpgrades["HolyAltar"] then
         maxCoreHp += 500
     end
@@ -357,6 +365,28 @@ function MonsterService.InitPlotWave(player: Player, plotModel: Model)
     plotWaveStates[plotModel] = state
     updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
     syncWaveToClient(player, state)
+end
+
+function MonsterService.ApplyCoreLevel(plotModel: Model, level: number)
+    local state = plotWaveStates[plotModel]
+    if not state then return end
+
+    local newMax = BalanceConfig.CoreLevels.GetMaxHp(level)
+    local player = plotOwnerMap[plotModel]
+    if player then
+        local data = DataService.GetData(player)
+        if data and data.UnlockedUpgrades["HolyAltar"] then
+            newMax += 500
+        end
+    end
+
+    local hpDiff = newMax - state.CoreMaxHealth
+    state.CoreMaxHealth = newMax
+    state.CoreHealth = math.clamp(state.CoreHealth + math.max(0, hpDiff), 0, newMax)
+    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
+    if player then
+        syncWaveToClient(player, state)
+    end
 end
 
 function MonsterService.StartWave(player: Player, plotModel: Model)
@@ -439,6 +469,11 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
             deathSound:Play()
         end
 
+        -- Physical loot item drop for shop selling
+        if ItemDropService and ItemDropService.SpawnDrop and rootPart then
+            ItemDropService.SpawnDrop(monsterType, rootPart.Position, player, plotModel)
+        end
+
         EconomyService.AddSouls(player, def.SoulDrop)
         local notif = Network.GetEvent("Notification")
         notif:FireClient(player, string.format("+%d Souls 👻", def.SoulDrop), Color3.fromRGB(160, 240, 255))
@@ -501,24 +536,31 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
                 humanoid:MoveTo(rootPart.Position)
                 stuckTicks = 0
 
-                -- Attack Manor Core
-                if attackSound then
-                    attackSound:Play()
+                -- Attack Manor Core (Respect Level 20 Ghost Cloak invulnerability)
+                local isCloaked = false
+                if ShopService and ShopService.IsGhostCloaked then
+                    isCloaked = ShopService.IsGhostCloaked(plotModel)
                 end
 
-                state.CoreHealth = math.max(0, state.CoreHealth - def.Damage)
-                state.LastDamageTime = os.clock() -- Interrupts Core healing cooldown
-                updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Combat")
-                syncWaveToClient(player, state)
+                if not isCloaked then
+                    if attackSound then
+                        attackSound:Play()
+                    end
 
-                if def.Ranged then
-                    local combatVisual = Network.GetEvent("CombatVisual")
-                    combatVisual:FireAllClients(rootPart.Position, manorCore.Position, true)
-                end
+                    state.CoreHealth = math.max(0, state.CoreHealth - def.Damage)
+                    state.LastDamageTime = os.clock() -- Interrupts Core healing cooldown
+                    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Combat")
+                    syncWaveToClient(player, state)
 
-                if state.CoreHealth <= 0 then
-                    MonsterService.HandleWaveDefeat(player, plotModel, state)
-                    break
+                    if def.Ranged then
+                        local combatVisual = Network.GetEvent("CombatVisual")
+                        combatVisual:FireAllClients(rootPart.Position, manorCore.Position, true)
+                    end
+
+                    if state.CoreHealth <= 0 then
+                        MonsterService.HandleWaveDefeat(player, plotModel, state)
+                        break
+                    end
                 end
 
                 task.wait(def.AttackRate)

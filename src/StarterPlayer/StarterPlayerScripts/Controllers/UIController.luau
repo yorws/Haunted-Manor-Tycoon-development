@@ -23,6 +23,7 @@ local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
 local screenGui: ScreenGui
 local coinsLabel: TextLabel
 local soulsLabel: TextLabel
+local invLabel: TextLabel
 local plotLabel: TextLabel
 local coreHpLabel: TextLabel
 local coreHpBarFill: Frame
@@ -54,8 +55,8 @@ function UIController.Init()
     -- 1. Top HUD Bar (Currencies & Plot)
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
-    topBar.Size = UDim2.new(0, 480, 0, 52)
-    topBar.Position = UDim2.new(0.5, -240, 0, 15)
+    topBar.Size = UDim2.new(0, 560, 0, 52)
+    topBar.Position = UDim2.new(0.5, -280, 0, 15)
     topBar.BackgroundColor3 = Color3.fromRGB(24, 20, 28)
     topBar.BackgroundTransparency = 0.2
     topBar.BorderSizePixel = 0
@@ -66,8 +67,8 @@ function UIController.Init()
     -- Coins Card
     local coinsCard = Instance.new("Frame")
     coinsCard.Name = "CoinsCard"
-    coinsCard.Size = UDim2.new(0.32, 0, 0.8, 0)
-    coinsCard.Position = UDim2.new(0.02, 0, 0.1, 0)
+    coinsCard.Size = UDim2.new(0.25, 0, 0.8, 0)
+    coinsCard.Position = UDim2.new(0.015, 0, 0.1, 0)
     coinsCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
     coinsCard.BorderSizePixel = 0
     coinsCard.Parent = topBar
@@ -80,7 +81,7 @@ function UIController.Init()
     coinsLabel.BackgroundTransparency = 1
     coinsLabel.Text = "🪙 0"
     coinsLabel.TextColor3 = Color3.fromRGB(255, 220, 70)
-    coinsLabel.TextSize = 16
+    coinsLabel.TextSize = 15
     coinsLabel.Font = Enum.Font.GothamBold
     coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
     coinsLabel.Parent = coinsCard
@@ -88,8 +89,8 @@ function UIController.Init()
     -- Souls Card
     local soulsCard = Instance.new("Frame")
     soulsCard.Name = "SoulsCard"
-    soulsCard.Size = UDim2.new(0.32, 0, 0.8, 0)
-    soulsCard.Position = UDim2.new(0.35, 0, 0.1, 0)
+    soulsCard.Size = UDim2.new(0.24, 0, 0.8, 0)
+    soulsCard.Position = UDim2.new(0.28, 0, 0.1, 0)
     soulsCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
     soulsCard.BorderSizePixel = 0
     soulsCard.Parent = topBar
@@ -102,16 +103,38 @@ function UIController.Init()
     soulsLabel.BackgroundTransparency = 1
     soulsLabel.Text = "👻 0"
     soulsLabel.TextColor3 = Color3.fromRGB(160, 240, 255)
-    soulsLabel.TextSize = 16
+    soulsLabel.TextSize = 15
     soulsLabel.Font = Enum.Font.GothamBold
     soulsLabel.TextXAlignment = Enum.TextXAlignment.Left
     soulsLabel.Parent = soulsCard
 
+    -- Inventory Card (Loot for Shop)
+    local invCard = Instance.new("Frame")
+    invCard.Name = "InventoryCard"
+    invCard.Size = UDim2.new(0.24, 0, 0.8, 0)
+    invCard.Position = UDim2.new(0.535, 0, 0.1, 0)
+    invCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
+    invCard.BorderSizePixel = 0
+    invCard.Parent = topBar
+    createCorner(invCard, 8)
+
+    invLabel = Instance.new("TextLabel")
+    invLabel.Name = "InventoryLabel"
+    invLabel.Size = UDim2.new(1, -8, 1, 0)
+    invLabel.Position = UDim2.new(0, 6, 0, 0)
+    invLabel.BackgroundTransparency = 1
+    invLabel.Text = "🎒 Loot: 0"
+    invLabel.TextColor3 = Color3.fromRGB(120, 255, 160)
+    invLabel.TextSize = 14
+    invLabel.Font = Enum.Font.GothamBold
+    invLabel.TextXAlignment = Enum.TextXAlignment.Left
+    invLabel.Parent = invCard
+
     -- Plot Card
     local plotCard = Instance.new("Frame")
     plotCard.Name = "PlotCard"
-    plotCard.Size = UDim2.new(0.28, 0, 0.8, 0)
-    plotCard.Position = UDim2.new(0.69, 0, 0.1, 0)
+    plotCard.Size = UDim2.new(0.19, 0, 0.8, 0)
+    plotCard.Position = UDim2.new(0.79, 0, 0.1, 0)
     plotCard.BackgroundColor3 = Color3.fromRGB(45, 35, 55)
     plotCard.BorderSizePixel = 0
     plotCard.Parent = topBar
@@ -123,7 +146,7 @@ function UIController.Init()
     plotLabel.BackgroundTransparency = 1
     plotLabel.Text = "🏰 Plot: --"
     plotLabel.TextColor3 = Color3.fromRGB(220, 200, 240)
-    plotLabel.TextSize = 14
+    plotLabel.TextSize = 13
     plotLabel.Font = Enum.Font.GothamMedium
     plotLabel.Parent = plotCard
 
@@ -243,6 +266,16 @@ end
 function UIController.UpdatePlayerData(data: Types.PlayerData)
     coinsLabel.Text = string.format("🪙 %d", data.Coins)
     soulsLabel.Text = string.format("👻 %d", data.Souls)
+
+    if invLabel then
+        local count = 0
+        if data.Inventory then
+            for _, c in pairs(data.Inventory) do
+                count += c
+            end
+        end
+        invLabel.Text = string.format("🎒 Loot: %d", count)
+    end
 end
 
 function UIController.UpdateWaveState(state: Types.WaveState)

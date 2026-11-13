@@ -15,6 +15,8 @@ local REMOTE_FUNCTIONS = {
     "RequestCollectVault",
     "RequestStartWave",
     "GetPlayerData",
+    "RequestSellInventory",
+    "RequestCoreLevelUp",
 }
 
 local REMOTE_EVENTS = {
