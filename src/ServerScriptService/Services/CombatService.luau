@@ -69,10 +69,20 @@ function CombatService.Init(dataServiceRef: any)
 end
 
 function CombatService.GiveWeapon(player: Player)
+    local weaponName = BalanceConfig.Weapon.Name
     local backpack = player:FindFirstChildOfClass("Backpack")
-    if backpack and not backpack:FindFirstChild(BalanceConfig.Weapon.Name) then
+    local character = player.Character
+
+    local hasInBackpack = backpack and backpack:FindFirstChild(weaponName)
+    local hasInCharacter = character and character:FindFirstChild(weaponName)
+
+    if not hasInBackpack and not hasInCharacter then
         local lantern = createLanternTool()
-        lantern.Parent = backpack
+        if backpack then
+            lantern.Parent = backpack
+        elseif character then
+            lantern.Parent = character
+        end
     end
 end
 

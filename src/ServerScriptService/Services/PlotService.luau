@@ -1,8 +1,9 @@
 --!strict
 --[[
     PlotService.luau
-    Manages 6 tycoon plots, procedural plot world generation, plot assignment,
-    authoritative upgrade pad purchases, and physical room assembly.
+    Manages 6 tycoon plots arranged in a hexagon/circle around the Central Market Hub!
+    Every plot faces inward towards the central Market Hub at (0, 1, 0).
+    Radius from center: 110 studs (very close, short walk to/from market).
 ]]
 
 local Players = game:GetService("Players")
@@ -17,7 +18,12 @@ local Types = require(ReplicatedStorage.Modules.Types)
 
 local PlotService = {}
 
-local plotsFolder: Folder
+local plotsFolder: Folder = (Workspace:FindFirstChild("Plots") or (function()
+    local f = Instance.new("Folder")
+    f.Name = "Plots"
+    f.Parent = Workspace
+    return f
+end)()) :: Folder
 local playerPlotMap: { [number]: Model } = {}
 local plotOwnerMap: { [Model]: Player? } = {}
 
@@ -101,7 +107,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(45, 60, 45),
             Parent = roomModel,
         })
-        -- 3 Tombstones
         local offsets = { Vector3.new(-24, 2.5, 6), Vector3.new(-32, 2.5, 12), Vector3.new(-26, 2.5, 18) }
         for i, pos in ipairs(offsets) do
             local stone = createPart({
@@ -120,7 +125,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
                 Parent = roomModel,
             })
         end
-        -- Dead Spooky Tree
         local trunk = createPart({
             Size = Vector3.new(2, 10, 2),
             CFrame = plotCFrame * CFrame.new(-36, 5, 10) * CFrame.Angles(0, 0, math.rad(8)),
@@ -130,7 +134,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
         })
 
     elseif upgradeId == "CryptChamber" then
-        -- Underground Stone Tomb & Sarcophagus
         local cryptBase = createPart({
             Size = Vector3.new(26, 1, 26),
             CFrame = plotCFrame * CFrame.new(28, 0.5, 10),
@@ -138,7 +141,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(55, 55, 65),
             Parent = roomModel,
         })
-        -- Sarcophagus Base & Lid
         local sarcophagus = createPart({
             Size = Vector3.new(6, 3, 10),
             CFrame = plotCFrame * CFrame.new(28, 2.5, 10),
@@ -154,7 +156,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(110, 105, 115),
             Parent = roomModel,
         })
-        -- Eerie Green Glow from inside sarcophagus
         local glow = Instance.new("PointLight")
         glow.Color = Color3.fromRGB(60, 255, 120)
         glow.Range = 16
@@ -162,7 +163,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
         glow.Parent = sarcophagus
 
     elseif upgradeId == "HauntedLibrary" then
-        -- Bookshelves and floating grimoires
         local libraryFloor = createPart({
             Size = Vector3.new(24, 1, 24),
             CFrame = plotCFrame * CFrame.new(-25, 0.5, -20),
@@ -170,7 +170,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(45, 30, 25),
             Parent = roomModel,
         })
-        -- Shelf Wall
         local shelf = createPart({
             Size = Vector3.new(22, 10, 3),
             CFrame = plotCFrame * CFrame.new(-25, 5.5, -31),
@@ -178,7 +177,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(35, 20, 15),
             Parent = roomModel,
         })
-        -- Floating Tome
         local book = createPart({
             Size = Vector3.new(2.5, 0.6, 3),
             CFrame = plotCFrame * CFrame.new(-25, 5, -20) * CFrame.Angles(math.rad(15), math.rad(25), 0),
@@ -194,7 +192,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
         bookLight.Parent = book
 
     elseif upgradeId == "SeanceParlor" then
-        -- Occult circle and floating crystal ball
         local parlorFloor = createPart({
             Size = Vector3.new(24, 1, 24),
             CFrame = plotCFrame * CFrame.new(25, 0.5, -20),
@@ -202,7 +199,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Color = Color3.fromRGB(35, 25, 35),
             Parent = roomModel,
         })
-        -- Dark Table
         local tablePart = createPart({
             Size = Vector3.new(8, 2.5, 8),
             CFrame = plotCFrame * CFrame.new(25, 2, -20),
@@ -212,7 +208,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Parent = roomModel,
         })
         tablePart.CFrame = plotCFrame * CFrame.new(25, 2, -20) * CFrame.Angles(0, 0, math.rad(90))
-        -- Floating Crystal Ball
         local crystalBall = createPart({
             Size = Vector3.new(2.5, 2.5, 2.5),
             CFrame = plotCFrame * CFrame.new(25, 4.8, -20),
@@ -229,7 +224,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
         ballLight.Parent = crystalBall
 
     elseif upgradeId == "GargoyleSentry" then
-        -- Defense Turret: Stone gargoyle sentinel
         local pillar = createPart({
             Size = Vector3.new(4, 8, 4),
             CFrame = plotCFrame * CFrame.new(-38, 4, 28),
@@ -245,7 +239,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
             Name = "GargoyleHead",
             Parent = roomModel,
         })
-        -- Glowing Sentinel Eyes
         local eyeLight = Instance.new("PointLight")
         eyeLight.Color = Color3.fromRGB(255, 90, 0)
         eyeLight.Range = 12
@@ -253,7 +246,6 @@ local function buildRoomModel(plotModel: Model, upgradeId: string, plotCFrame: C
         eyeLight.Parent = gargoyleHead
 
     elseif upgradeId == "HolyAltar" then
-        -- Sanctified Holy Relic Altar
         local altarBase = createPart({
             Size = Vector3.new(8, 2.5, 8),
             CFrame = plotCFrame * CFrame.new(38, 1.5, 28),
@@ -285,9 +277,9 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     plotModel.Name = "Plot_" .. tostring(plotIndex)
     plotModel:SetAttribute("PlotIndex", plotIndex)
 
-    -- Plot Ground (110 x 110 studs)
+    -- Plot Ground (90 x 90 studs)
     local ground = createPart({
-        Size = Vector3.new(110, 2, 110),
+        Size = Vector3.new(90, 2, 90),
         CFrame = plotCFrame,
         Material = Enum.Material.Slate,
         Color = Color3.fromRGB(35, 38, 35),
@@ -295,33 +287,33 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
         Parent = plotModel,
     })
 
-    -- Plot Boundary Curb
+    -- Plot Boundary Curbs (Left, Right, Back; Front is open facing Market Hub)
     createPart({
-        Size = Vector3.new(112, 3, 2),
-        CFrame = plotCFrame * CFrame.new(0, 1.5, -55),
+        Size = Vector3.new(92, 3, 2),
+        CFrame = plotCFrame * CFrame.new(0, 1.5, -45),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
     })
     createPart({
-        Size = Vector3.new(2, 3, 112),
-        CFrame = plotCFrame * CFrame.new(-55, 1.5, 0),
+        Size = Vector3.new(2, 3, 92),
+        CFrame = plotCFrame * CFrame.new(-45, 1.5, 0),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
     })
     createPart({
-        Size = Vector3.new(2, 3, 112),
-        CFrame = plotCFrame * CFrame.new(55, 1.5, 0),
+        Size = Vector3.new(2, 3, 92),
+        CFrame = plotCFrame * CFrame.new(45, 1.5, 0),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
     })
 
-    -- Manor Core (The Heart of the plot, defending objective)
+    -- Manor Core (The Heart of the plot, placed towards back Z = -30)
     local corePedestal = createPart({
         Size = Vector3.new(10, 2, 10),
-        CFrame = plotCFrame * CFrame.new(0, 1.5, -35),
+        CFrame = plotCFrame * CFrame.new(0, 1.5, -30),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(50, 45, 50),
         Name = "CorePedestal",
@@ -362,8 +354,8 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
 
     -- Coin Vault Pad (Collects visitor coins)
     local vaultPad = createPart({
-        Size = Vector3.new(8, 0.2, 8),
-        CFrame = plotCFrame * CFrame.new(-12, 1.1, 40),
+        Size = Vector3.new(7, 0.2, 7),
+        CFrame = plotCFrame * CFrame.new(-12, 1.1, 35),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(245, 200, 40),
         Name = "VaultPad",
@@ -390,8 +382,8 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
 
     -- Wave Summon Bell Pad (Summons next wave early for Souls)
     local bellPad = createPart({
-        Size = Vector3.new(8, 0.2, 8),
-        CFrame = plotCFrame * CFrame.new(12, 1.1, 40),
+        Size = Vector3.new(7, 0.2, 7),
+        CFrame = plotCFrame * CFrame.new(12, 1.1, 35),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(180, 40, 40),
         Name = "WaveBellPad",
@@ -416,13 +408,10 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     bellLabel.Font = Enum.Font.GothamBold
     bellLabel.Parent = bellGui
 
-    -- Shop Pad removed: Shop is now at the Central Market Hub
-    -- Core Level Up Pad removed: Use E-key proximity near ManorCore (see CoreUpgradeController)
-
-    -- Plot Entrance Gate & Welcome Sign
+    -- Plot Entrance Gate & Welcome Sign (At front Z = 44, facing Market Hub)
     local gateArch = createPart({
         Size = Vector3.new(16, 12, 2),
-        CFrame = plotCFrame * CFrame.new(0, 6, 52),
+        CFrame = plotCFrame * CFrame.new(0, 6, 44),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(45, 45, 50),
         Name = "EntranceGate",
@@ -450,7 +439,7 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     local plotSpawn = Instance.new("SpawnLocation")
     plotSpawn.Name = "PlotSpawn"
     plotSpawn.Size = Vector3.new(6, 0.4, 6)
-    plotSpawn.CFrame = plotCFrame * CFrame.new(0, 1.2, 45)
+    plotSpawn.CFrame = plotCFrame * CFrame.new(0, 1.2, 38)
     plotSpawn.Anchored = true
     plotSpawn.CanCollide = false
     plotSpawn.Transparency = 1
@@ -516,24 +505,29 @@ function PlotService.Init(dataServiceRef: any, economyServiceRef: any, shopServi
         plotsFolder = Instance.new("Folder")
         plotsFolder.Name = "Plots"
         plotsFolder.Parent = Workspace
+    else
+        plotsFolder:ClearAllChildren()
     end
 
-    -- Create 6 Plots in a 2x3 layout
-    local plotSpacingX = 140
-    local plotSpacingZ = 140
-    local startX = -((3 - 1) * plotSpacingX) / 2
-    local startZ = -((2 - 1) * plotSpacingZ) / 2
+    -- Circular/Hexagonal layout: 6 plots surrounding the Central Market Hub at (0, 1, 0)
+    -- Radius = 105 studs. Front entrance gate faces inward directly towards Market Hub!
+    local PLOT_RADIUS = 105
+    local NUM_PLOTS = 6
 
-    local index = 1
-    for row = 0, 1 do
-        for col = 0, 2 do
-            local posX = startX + (col * plotSpacingX)
-            local posZ = startZ + (row * plotSpacingZ)
-            local plotCF = CFrame.new(posX, 1, posZ)
-            local plotModel = generatePlot(index, plotCF)
-            plotOwnerMap[plotModel] = nil
-            index += 1
-        end
+    for index = 1, NUM_PLOTS do
+        local angle = ((index - 1) * (2 * math.pi / NUM_PLOTS))
+        local posX = math.sin(angle) * PLOT_RADIUS
+        local posZ = math.cos(angle) * PLOT_RADIUS
+        local plotPos = Vector3.new(posX, 1, posZ)
+
+        -- Orient the plot so that +Z points towards center (0, 1, 0)
+        -- CFrame.lookAt(eye, target) makes -Z point to target.
+        -- Since EntranceGate is at +Z in local space, we look AWAY from center:
+        local lookAway = plotPos + (plotPos - Vector3.new(0, 1, 0))
+        local plotCF = CFrame.lookAt(plotPos, lookAway)
+
+        local plotModel = generatePlot(index, plotCF)
+        plotOwnerMap[plotModel] = nil
     end
 
     -- Register Purchase RemoteFunction
@@ -569,14 +563,9 @@ function PlotService.SetupPadListeners()
                     local player = Players:GetPlayerFromCharacter(character)
                     if player and plotOwnerMap[plotModel] == player then
                         local startWaveFn = Network.GetFunction("RequestStartWave")
-                        -- Trigger wave via MonsterService if available
                     end
                 end)
             end
-
-            -- Shop Pad listener removed: Shop is now at Central Market Hub
-
-            -- Core Level Up Pad listener removed: Handled via E-key proximity in CoreUpgradeController
 
             -- Purchase Pads
             local padsFolder = plotModel:FindFirstChild("Pads")
@@ -630,14 +619,13 @@ function PlotService.HandlePurchase(player: Player, upgradeId: string): (boolean
         return false, "Upgrade pad not found."
     end
 
-    -- Security: Validate distance to pad (< 18 studs)
+    -- Security: Validate distance to pad (< 20 studs)
     local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart
     local dist = (hrp.Position - pad.Position).Magnitude
     if dist > 20 then
         return false, "Too far from upgrade pad!"
     end
 
-    -- Check if already unlocked
     local data = DataService.GetData(player)
     if not data then
         return false, "Data not loaded."
@@ -647,12 +635,10 @@ function PlotService.HandlePurchase(player: Player, upgradeId: string): (boolean
         return false, "Already unlocked!"
     end
 
-    -- Check prerequisite
     if targetUpgrade.Requires and not data.UnlockedUpgrades[targetUpgrade.Requires] then
         return false, string.format("Must unlock %s first!", targetUpgrade.Requires)
     end
 
-    -- Check cost and currency
     local cost = targetUpgrade.Cost
     if data.HasVip and targetUpgrade.Currency == "Coins" then
         cost = math.floor(cost * MonetizationConfig.Perks.VipDiscountMultiplier)
@@ -674,22 +660,18 @@ function PlotService.HandlePurchase(player: Player, upgradeId: string): (boolean
         EconomyService.DeductSouls(player, cost)
     end
 
-    -- Unlock upgrade
     DataService.UpdateData(player, function(d: Types.PlayerData)
         d.UnlockedUpgrades[upgradeId] = true
     end)
 
-    -- Build physical model
     local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart
     buildRoomModel(plotModel, upgradeId, plotBase.CFrame)
 
-    -- Hide purchased pad
     pad.Transparency = 1
     pad.CanCollide = false
     local padGui = pad:FindFirstChild("PadGui")
     if padGui then (padGui :: BillboardGui).Enabled = false end
 
-    -- Reveal available next pads
     PlotService.RefreshPadsVisibility(player)
 
     local notif = Network.GetEvent("Notification")
@@ -717,17 +699,14 @@ function PlotService.RefreshPadsVisibility(player: Player)
             local prereqMet = upgrade.Requires == nil or data.UnlockedUpgrades[upgrade.Requires] == true
 
             if isUnlocked then
-                -- Already bought: hide
                 pad.Transparency = 1
                 pad.CanCollide = false
                 if padGui then padGui.Enabled = false end
             elseif prereqMet then
-                -- Available to buy: show pad (CanCollide = false so players & monsters walk over smoothly)
                 pad.Transparency = 0
                 pad.CanCollide = false
                 if padGui then padGui.Enabled = true end
             else
-                -- Locked behind prereq: hide until ready
                 pad.Transparency = 1
                 pad.CanCollide = false
                 if padGui then padGui.Enabled = false end
@@ -737,12 +716,21 @@ function PlotService.RefreshPadsVisibility(player: Player)
 end
 
 function PlotService.AssignPlot(player: Player): Model?
-    -- Check if player already has a plot
+    if not DataService then
+        DataService = require(game:GetService("ServerScriptService").Services.DataService)
+    end
+    if not EconomyService then
+        EconomyService = require(game:GetService("ServerScriptService").Services.EconomyService)
+    end
+    if not plotsFolder then
+        plotsFolder = Workspace:FindFirstChild("Plots") :: Folder
+    end
+    if not plotsFolder then return nil end
+
     if playerPlotMap[player.UserId] then
         return playerPlotMap[player.UserId]
     end
 
-    -- Find first vacant plot
     for _, plotModel in ipairs(plotsFolder:GetChildren()) do
         if plotModel:IsA("Model") and plotOwnerMap[plotModel] == nil then
             plotOwnerMap[plotModel] = player
@@ -751,21 +739,19 @@ function PlotService.AssignPlot(player: Player): Model?
             plotModel:SetAttribute("OwnerUserId", player.UserId)
             plotModel:SetAttribute("OwnerName", player.Name)
 
-            -- Update entrance sign
             local gate = plotModel:FindFirstChild("EntranceGate")
             if gate then
                 local signGui = gate:FindFirstChild("OwnerSign")
                 if signGui then
                     local label = signGui:FindFirstChild("SignLabel") :: TextLabel?
                     if label then
-                        label.Text = string.format("🏰 %s's Haunted Manor", player.DisplayName)
+                        label.Text = string.format("🏰 %s's Manor", player.DisplayName)
                         label.TextColor3 = Color3.fromRGB(255, 215, 0)
                     end
                 end
             end
 
-            -- Rebuild saved upgrades
-            local data = DataService.GetData(player)
+            local data = if DataService then DataService.GetData(player) else nil
             if data then
                 local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart
                 for _, upgrade in ipairs(BalanceConfig.Upgrades) do
@@ -778,17 +764,23 @@ function PlotService.AssignPlot(player: Player): Model?
 
             PlotService.RefreshPadsVisibility(player)
 
-            -- Notify client
             local plotEvent = Network.GetEvent("PlotAssigned")
-            plotEvent:FireClient(player, plotModel:GetAttribute("PlotIndex") or 1, plotModel)
+            if plotEvent then
+                plotEvent:FireClient(player, plotModel:GetAttribute("PlotIndex") or 1, plotModel)
+            end
 
-            -- Teleport player on spawn
+            -- Teleport player directly into their monster arena right by the Manor Core!
             task.spawn(function()
                 local character = player.Character or player.CharacterAdded:Wait()
                 local hrp = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+                local manorCore = plotModel:FindFirstChild("ManorCore") :: BasePart?
                 local spawnPart = plotModel:FindFirstChild("PlotSpawn") :: BasePart?
-                if hrp and spawnPart then
-                    hrp.CFrame = spawnPart.CFrame + Vector3.new(0, 3, 0)
+                if hrp then
+                    if manorCore then
+                        character:PivotTo(manorCore.CFrame * CFrame.new(0, 3, 14))
+                    elseif spawnPart then
+                        character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3, 0))
+                    end
                 end
             end)
 
@@ -810,7 +802,6 @@ function PlotService.ReleasePlot(player: Player)
     plotModel:SetAttribute("OwnerUserId", nil)
     plotModel:SetAttribute("OwnerName", nil)
 
-    -- Reset entrance sign
     local gate = plotModel:FindFirstChild("EntranceGate")
     if gate then
         local signGui = gate:FindFirstChild("OwnerSign")
@@ -823,13 +814,11 @@ function PlotService.ReleasePlot(player: Player)
         end
     end
 
-    -- Clear built rooms
     local builtFolder = plotModel:FindFirstChild("BuiltUpgrades")
     if builtFolder then
         builtFolder:ClearAllChildren()
     end
 
-    -- Reset Core HP and level pad
     local manorCore = plotModel:FindFirstChild("ManorCore")
     if manorCore then
         local coreGui = manorCore:FindFirstChild("CoreGui")
@@ -842,7 +831,6 @@ function PlotService.ReleasePlot(player: Player)
     end
     PlotService.UpdateCoreLevelPad(plotModel, 1)
 
-    -- Reset pads
     local padsFolder = plotModel:FindFirstChild("Pads")
     if padsFolder then
         for _, pad in ipairs(padsFolder:GetChildren()) do
@@ -865,8 +853,7 @@ function PlotService.ReleasePlot(player: Player)
 end
 
 function PlotService.UpdateCoreLevelPad(plotModel: Model, level: number)
-    -- CoreLevelPad replaced by E-key proximity system; this function is now a no-op
-    -- Kept for compatibility with ShopService calls
+    -- Proximity E-key system handles visual upgrade prompt
 end
 
 function PlotService.GetPlayerPlot(player: Player): Model?
@@ -874,4 +861,3 @@ function PlotService.GetPlayerPlot(player: Player): Model?
 end
 
 return PlotService
-

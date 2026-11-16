@@ -1,0 +1,497 @@
+﻿-- Batch sync: batch1_replicated
+local updated = {}
+do
+    local target = game:GetService("ReplicatedStorage"):WaitForChild("Config"):WaitForChild("BalanceConfig")
+    target.Source = [==[
+--!strict
+--[[
+    BalanceConfig.luau
+    Central balance numbers, costs, stats, audio IDs, monster drops,
+    and Manor Core 20-level progression data for Haunted Manor Tycoon.
+]]
+
+local BalanceConfig = {}
+
+BalanceConfig.General = {
+    MaxPlots = 6,
+    StarterCoins = 50,
+    StarterSouls = 0,
+    AutosaveInterval = 60,
+    MaxSaveRetries = 3,
+    DataStoreKey = "HauntedManor_UserData_v1",
+}
+
+BalanceConfig.Core = {
+    BaseMaxHealth = 500,
+    RegenAmount = 25,             -- Amount of HP healed per tick
+    RegenTickInterval = 2.5,      -- Seconds between heal pulses
+    OutOfCombatCooldown = 6,      -- Seconds without damage before healing starts
+    DefeatRecoveryDuration = 20,
+}
+
+BalanceConfig.CoreLevels = {
+    MaxLevel = 20,
+    -- Cost formula: starts at 100, scales steeply per level
+    -- Lv1->2: 100, Lv2->3: 250, Lv3->4: 450, Lv5->6: 1050, Lv9->10: 3250, Lv10->11: 4000, Lv19->20: 18100
+    GetUpgradeCost = function(currentLevel: number): number
+        -- Base 100, then quadratic: 100 + (level^2 * 25) + (level * 75)
+        return math.floor(100 + (currentLevel * currentLevel * 25) + (currentLevel * 75))
+    end,
+    GetMaxHp = function(level: number): number
+        return 500 + ((level - 1) * 200) -- Lvl 1: 500, Lvl 10: 2300, Lvl 20: 4300
+    end,
+    -- Proximity radius for E-key interaction (studs from ManorCore)
+    UpgradeInteractRadius = 14,
+    Skills = {
+        Level10 = {
+            Name = "Spectral Retaliation",
+            Description = "When Core HP drops below 50%, immediately zaps up to 10 nearest monsters!",
+            TargetCount = 10,
+            Damage = 175,
+            Range = 85,
+            Cooldown = 35,
+        },
+        Level20 = {
+            Name = "Ghost Cloak",
+            Description = "When Core HP drops below 35%, the Manor Core phases out and becomes completely invulnerable for 5 seconds!",
+            Duration = 5,
+            Cooldown = 50,
+        },
+    },
+}
+
+BalanceConfig.MonsterDrops = {
+    Ghost = {
+        ItemId = "Ectoplasm",
+        DisplayName = "Ectoplasm",
+        SellPrice = 18,
+        Color = Color3.fromRGB(120, 240, 255),
+    },
+    Zombie = {
+        ItemId = "ZombieBone",
+        DisplayName = "Zombie Bone",
+        SellPrice = 35,
+        Color = Color3.fromRGB(225, 220, 200),
+    },
+    Wraith = {
+        ItemId = "DarkEssence",
+        DisplayName = "Dark Essence",
+        SellPrice = 75,
+        Color = Color3.fromRGB(170, 60, 245),
+    },
+}
+
+BalanceConfig.Upgrades = {
+    {
+        Id = "Foyer",
+        DisplayName = "Manor Foyer",
+        Cost = 25,
+        Currency = "Coins",
+        Requires = nil,
+        IncomePerVisitor = 8,
+        VisitorIntervalBonus = 0.5,
+        Description = "The grand, creaky manor entryway with flickering candle chandeliers.",
+        Color = Color3.fromRGB(140, 95, 55),
+        PadPosition = Vector3.new(0, 0.5, 18),
+    },
+    {
+        Id = "GraveyardGarden",
+        DisplayName = "Graveyard Garden",
+        Cost = 85,
+        Currency = "Coins",
+        Requires = "Foyer",
+        IncomePerVisitor = 16,
+        VisitorIntervalBonus = 0.8,
+        Description = "Ancient crooked gravestones and swirling cemetery fog.",
+        Color = Color3.fromRGB(65, 85, 65),
+        PadPosition = Vector3.new(-28, 0.5, 10),
+    },
+    {
+        Id = "CryptChamber",
+        DisplayName = "Crypt Chamber",
+        Cost = 220,
+        Currency = "Coins",
+        Requires = "GraveyardGarden",
+        IncomePerVisitor = 32,
+        VisitorIntervalBonus = 1.2,
+        Description = "Chilled stone tomb housing a cursed royal sarcophagus.",
+        Color = Color3.fromRGB(80, 80, 95),
+        PadPosition = Vector3.new(28, 0.5, 10),
+    },
+    {
+        Id = "HauntedLibrary",
+        DisplayName = "Haunted Library",
+        Cost = 550,
+        Currency = "Coins",
+        Requires = "CryptChamber",
+        IncomePerVisitor = 65,
+        VisitorIntervalBonus = 1.6,
+        Description = "Cobwebbed shelves of occult tomes with levitating books.",
+        Color = Color3.fromRGB(110, 55, 75),
+        PadPosition = Vector3.new(-25, 0.5, -20),
+    },
+    {
+        Id = "SeanceParlor",
+        DisplayName = "Séance Parlor",
+        Cost = 1200,
+        Currency = "Coins",
+        Requires = "HauntedLibrary",
+        IncomePerVisitor = 130,
+        VisitorIntervalBonus = 2.2,
+        Description = "Summoning circle with an unearthly floating crystal orb.",
+        Color = Color3.fromRGB(130, 45, 150),
+        PadPosition = Vector3.new(25, 0.5, -20),
+    },
+    {
+        Id = "GargoyleSentry",
+        DisplayName = "Gargoyle Sentry",
+        Cost = 20,
+        Currency = "Souls",
+        Requires = "GraveyardGarden",
+        DefenseType = "Turret",
+        TurretRange = 45,
+        TurretDamage = 25,
+        TurretCooldown = 1.5,
+        Description = "Stone guardian that shoots crackling spectral bolts at encroaching monsters.",
+        Color = Color3.fromRGB(200, 110, 25),
+        PadPosition = Vector3.new(-38, 0.5, 28),
+    },
+    {
+        Id = "HolyAltar",
+        DisplayName = "Holy Relic Altar",
+        Cost = 45,
+        Currency = "Souls",
+        Requires = "SeanceParlor",
+        DefenseType = "Sanctuary",
+        CoreHpBonus = 500,
+        WeaponDamageMultiplier = 1.5,
+        Description = "Infuses the Manor Core with +500 Max HP and amplifies Holy Lantern damage by 50%.",
+        Color = Color3.fromRGB(250, 220, 85),
+        PadPosition = Vector3.new(38, 0.5, 28),
+    },
+}
+
+BalanceConfig.Monsters = {
+    Ghost = {
+        DisplayName = "Restless Ghost",
+        WalkSpeed = 21,
+        MaxHealth = 50,
+        Damage = 10,
+        SoulDrop = 1,
+        AttackRange = 5,
+        AttackRate = 1.0,
+        Ranged = false,
+        Color = Color3.fromRGB(150, 240, 255),
+        Transparency = 0.45,
+        Material = Enum.Material.ForceField,
+        Sounds = {
+            Groan = "rbxassetid://125610525645835",
+            Attack = "rbxassetid://9113951479",
+            Death = "rbxassetid://139090255801447",
+            Pitch = 1.15,
+            Volume = 1.5,
+        },
+    },
+    Zombie = {
+        DisplayName = "Grave Zombie",
+        WalkSpeed = 9,
+        MaxHealth = 175,
+        Damage = 22,
+        SoulDrop = 2,
+        AttackRange = 5,
+        AttackRate = 1.4,
+        Ranged = false,
+        Color = Color3.fromRGB(65, 95, 60),
+        Transparency = 0,
+        Material = Enum.Material.CorrodedMetal,
+        Sounds = {
+            Groan = "rbxassetid://127809799844346",
+            Attack = "rbxassetid://109819443674858",
+            Death = "rbxassetid://106129958887908",
+            Pitch = 0.9,
+            Volume = 1.6,
+        },
+    },
+    Wraith = {
+        DisplayName = "Shadow Wraith",
+        WalkSpeed = 13,
+        MaxHealth = 95,
+        Damage = 16,
+        SoulDrop = 3,
+        AttackRange = 28,
+        AttackRate = 2.0,
+        Ranged = true,
+        Color = Color3.fromRGB(45, 15, 60),
+        Transparency = 0.2,
+        Material = Enum.Material.Neon,
+        Sounds = {
+            Groan = "rbxassetid://9113985717",
+            Attack = "rbxassetid://131653988627020",
+            Death = "rbxassetid://80984191739263",
+            Pitch = 1.0,
+            Volume = 1.6,
+        },
+    },
+}
+
+BalanceConfig.Waves = {
+    AutoWaveInterval = 120,
+    RewardBaseCoins = 80,
+    RewardCoinsPerWave = 35,
+    RewardBaseSouls = 5,
+    RewardSoulsPerWave = 2,
+    MaxWaveCapacity = 25,
+}
+
+BalanceConfig.Weapon = {
+    Name = "Holy Lantern",
+    BaseDamage = 35,
+    Range = 36,
+    Cooldown = 0.45,
+    BeamWidth = 1.2,
+    LightColor = Color3.fromRGB(255, 240, 160),
+    FireSound = "rbxassetid://115842676995967",
+}
+
+BalanceConfig.Visitors = {
+    BaseSpawnInterval = 6,
+    MinSpawnInterval = 2.5,
+    MaxVisitorsPerPlot = 6,
+    MaxPlotCapacityWithRooms = 12,
+    VisitDuration = 8,
+}
+
+return BalanceConfig
+]==]
+    table.insert(updated, target:GetFullName())
+end
+do
+    local target = game:GetService("ReplicatedStorage"):WaitForChild("Config"):WaitForChild("MonetizationConfig")
+    target.Source = [==[
+--!strict
+--[[
+    MonetizationConfig.luau
+    Placeholder IDs and configurations for GamePasses and Developer Products.
+    Replace 0 with real Roblox asset IDs before publishing.
+]]
+
+local MonetizationConfig = {}
+
+-- GamePass Asset IDs (Create these in Roblox Creator Dashboard)
+MonetizationConfig.Gamepasses = {
+    DoubleCoins = 0, -- Grants x2 Coins earned from visitors & waves
+    VipPlot = 0,     -- Gives golden plot aesthetic, 20% room discount, +10 bonus souls on join
+}
+
+-- Developer Product IDs (Create these in Roblox Creator Dashboard)
+MonetizationConfig.DevProducts = {
+    Souls50 = 0,   -- Instant +50 Souls pack
+    Souls200 = 0,  -- Instant +200 Souls mega pack
+}
+
+-- Multipliers & Perks
+MonetizationConfig.Perks = {
+    DoubleCoinsMultiplier = 2.0,
+    VipDiscountMultiplier = 0.8, -- 20% off Coin upgrade costs
+    VipSoulsGift = 10,
+}
+
+return MonetizationConfig
+
+]==]
+    table.insert(updated, target:GetFullName())
+end
+do
+    local target = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Network")
+    target.Source = [==[
+--!strict
+--[[
+    Network.luau
+    Central network definition and initialization module.
+    Automatically sets up RemoteFunctions and RemoteEvents in ReplicatedStorage.
+]]
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Network = {}
+
+local REMOTE_FUNCTIONS = {
+    "RequestPurchase",
+    "RequestCollectVault",
+    "RequestStartWave",
+    "GetPlayerData",
+    "RequestSellInventory",
+    "RequestCoreLevelUp",
+}
+
+local REMOTE_EVENTS = {
+    "AttackRequest",
+    "PlayerDataUpdated",
+    "PlotAssigned",
+    "WaveStateUpdated",
+    "Notification",
+    "CombatVisual",
+}
+
+local remotesFolder: Folder
+
+local function getOrCreateRemotesFolder(): Folder
+    local folder = ReplicatedStorage:FindFirstChild("Remotes")
+    if not folder then
+        if RunService:IsServer() then
+            folder = Instance.new("Folder")
+            folder.Name = "Remotes"
+            folder.Parent = ReplicatedStorage
+        else
+            folder = ReplicatedStorage:WaitForChild("Remotes", 10) :: Folder
+            assert(folder, "[Network] Failed to locate Remotes folder on client!")
+        end
+    end
+    return folder :: Folder
+end
+
+remotesFolder = getOrCreateRemotesFolder()
+
+function Network.InitServer()
+    assert(RunService:IsServer(), "[Network] InitServer can only be called on the server!")
+    
+    for _, name in ipairs(REMOTE_FUNCTIONS) do
+        if not remotesFolder:FindFirstChild(name) then
+            local rf = Instance.new("RemoteFunction")
+            rf.Name = name
+            rf.Parent = remotesFolder
+        end
+    end
+
+    for _, name in ipairs(REMOTE_EVENTS) do
+        if not remotesFolder:FindFirstChild(name) then
+            local re = Instance.new("RemoteEvent")
+            re.Name = name
+            re.Parent = remotesFolder
+        end
+    end
+end
+
+function Network.GetFunction(name: string): RemoteFunction
+    local remote = remotesFolder:FindFirstChild(name)
+    if not remote then
+        if RunService:IsClient() then
+            remote = remotesFolder:WaitForChild(name, 10)
+        else
+            remote = Instance.new("RemoteFunction")
+            remote.Name = name
+            remote.Parent = remotesFolder
+        end
+    end
+    assert(remote and remote:IsA("RemoteFunction"), "[Network] RemoteFunction not found: " .. name)
+    return remote
+end
+
+function Network.GetEvent(name: string): RemoteEvent
+    local remote = remotesFolder:FindFirstChild(name)
+    if not remote then
+        if RunService:IsClient() then
+            remote = remotesFolder:WaitForChild(name, 10)
+        else
+            remote = Instance.new("RemoteEvent")
+            remote.Name = name
+            remote.Parent = remotesFolder
+        end
+    end
+    assert(remote and remote:IsA("RemoteEvent"), "[Network] RemoteEvent not found: " .. name)
+    return remote
+end
+
+return Network
+
+]==]
+    table.insert(updated, target:GetFullName())
+end
+do
+    local target = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Types")
+    target.Source = [==[
+--!strict
+--[[
+    Types.luau
+    Central Luau type definitions for Haunted Manor Tycoon.
+]]
+
+export type MonsterDropItem = {
+    ItemId: string,
+    DisplayName: string,
+    SellPrice: number,
+    Color: Color3,
+}
+
+export type PlayerData = {
+    Coins: number,
+    Souls: number,
+    UnlockedUpgrades: { [string]: boolean },
+    WaveNumber: number,
+    MonstersDefeated: number,
+    HasDoubleCoins: boolean,
+    HasVip: boolean,
+    CoreLevel: number,
+    Inventory: { [string]: number },
+    LastSaveTimestamp: number,
+}
+
+export type UpgradeDef = {
+    Id: string,
+    DisplayName: string,
+    Cost: number,
+    Currency: string,
+    Requires: string?,
+    IncomePerVisitor: number?,
+    VisitorIntervalBonus: number?,
+    DefenseType: string?,
+    TurretRange: number?,
+    TurretDamage: number?,
+    TurretCooldown: number?,
+    CoreHpBonus: number?,
+    WeaponDamageMultiplier: number?,
+    Description: string,
+    Color: Color3,
+    PadPosition: Vector3,
+}
+
+export type MonsterDef = {
+    DisplayName: string,
+    WalkSpeed: number,
+    MaxHealth: number,
+    Damage: number,
+    SoulDrop: number,
+    AttackRange: number,
+    AttackRate: number,
+    Ranged: boolean,
+    Color: Color3,
+    Transparency: number,
+    Material: Enum.Material,
+    Sounds: {
+        Groan: string,
+        Attack: string,
+        Death: string,
+        Pitch: number,
+        Volume: number,
+    }?,
+}
+
+export type WaveStatus = "Waiting" | "Active" | "Victory" | "Defeat"
+
+export type WaveState = {
+    WaveNumber: number,
+    Status: WaveStatus,
+    TimeRemaining: number,
+    MonstersRemaining: number,
+    CoreHealth: number,
+    CoreMaxHealth: number,
+    CoreLevel: number,
+    IsGhostCloaked: boolean?,
+}
+
+return {}
+]==]
+    table.insert(updated, target:GetFullName())
+end
+return 'Synced batch batch1_replicated (' .. #updated .. ' scripts): ' .. table.concat(updated, ', ')

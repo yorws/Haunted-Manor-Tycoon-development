@@ -70,14 +70,28 @@ local function onPlayerAdded(player: Player)
     local function onCharacterAdded(character: Model)
         CombatService.GiveWeapon(player)
 
-        -- If plot exists, ensure spawn on plot
-        if plot then
-            local spawnPart = plot:FindFirstChild("PlotSpawn") :: BasePart?
-            local hrp = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
-            if hrp and spawnPart then
-                hrp.CFrame = spawnPart.CFrame + Vector3.new(0, 3, 0)
+        task.spawn(function()
+            local assignedPlot = PlotService.GetPlayerPlot(player) or plot
+            if not assignedPlot then
+                assignedPlot = PlotService.AssignPlot(player)
             end
-        end
+            if assignedPlot then
+                local manorCore = assignedPlot:FindFirstChild("ManorCore") :: BasePart?
+                local spawnPart = assignedPlot:FindFirstChild("PlotSpawn") :: BasePart?
+                for _ = 1, 20 do
+                    local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+                    if hrp then
+                        if manorCore then
+                            character:PivotTo(manorCore.CFrame * CFrame.new(0, 3, 14))
+                        elseif spawnPart then
+                            character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3, 0))
+                        end
+                        break
+                    end
+                    task.wait(0.1)
+                end
+            end
+        end)
     end
 
     if player.Character then

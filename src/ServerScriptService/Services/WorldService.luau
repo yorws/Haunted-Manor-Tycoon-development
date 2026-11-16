@@ -1,11 +1,9 @@
 --!strict
 --[[
     WorldService.luau
-    Builds the Central Market Hub at the center of the map, accessible from all 6 player plots.
-    The hub contains a Loot Shop zone (sell monster drops for Coins) and room for future stalls.
-    
-    Map center: (0, 1, 0) — equidistant from all 6 plots which are arranged in a 2x3 grid.
-    Hub sits at Y=1 on a raised circular stone platform.
+    Builds the Central Market Hub at the center of the map (0, 1, 0).
+    Surrounded closely by all 6 player plots (Hexagonal layout, radius 105 studs).
+    Includes stone pathways connecting the Market Hub directly to every plot entrance!
 ]]
 
 local Players = game:GetService("Players")
@@ -40,18 +38,18 @@ local function buildMarketHub(): Model
 
     -- Main circular stone platform (40 stud radius)
     local platform = createPart({
-        Size = Vector3.new(80, 2, 80),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -1, 0)),
+        Size = Vector3.new(65, 2, 65),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -0.9, 0)),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(55, 52, 60),
         Name = "HubPlatform",
         Parent = hubModel,
     })
 
-    -- Outer decorative ring (slightly lower, different material)
+    -- Outer decorative ring
     createPart({
-        Size = Vector3.new(96, 1, 96),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -1.5, 0)),
+        Size = Vector3.new(78, 1, 78),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -1.4, 0)),
         Material = Enum.Material.SmoothPlastic,
         Color = Color3.fromRGB(40, 38, 48),
         Name = "HubRing",
@@ -60,17 +58,16 @@ local function buildMarketHub(): Model
 
     -- Central Obelisk (landmark/waypoint pillar)
     local obelisk = createPart({
-        Size = Vector3.new(3, 24, 3),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 12, 0)),
+        Size = Vector3.new(3, 22, 3),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 11, 0)),
         Material = Enum.Material.Marble,
         Color = Color3.fromRGB(50, 45, 65),
         Name = "MarketObelisk",
         Parent = hubModel,
     })
-    -- Glowing crystal top
     local crystal = createPart({
         Size = Vector3.new(2.5, 2.5, 2.5),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 25.5, 0)),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 23.5, 0)),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(80, 220, 255),
         Shape = Enum.PartType.Ball,
@@ -79,7 +76,7 @@ local function buildMarketHub(): Model
     })
     local crystalLight = Instance.new("PointLight")
     crystalLight.Color = Color3.fromRGB(80, 220, 255)
-    crystalLight.Range = 60
+    crystalLight.Range = 50
     crystalLight.Brightness = 3
     crystalLight.Parent = crystal
 
@@ -87,78 +84,83 @@ local function buildMarketHub(): Model
     local obeliskGui = Instance.new("BillboardGui")
     obeliskGui.Name = "HubSign"
     obeliskGui.Size = UDim2.new(10, 0, 2, 0)
-    obeliskGui.StudsOffset = Vector3.new(0, 16, 0)
+    obeliskGui.StudsOffset = Vector3.new(0, 15, 0)
     obeliskGui.AlwaysOnTop = true
     obeliskGui.Parent = obelisk
 
     local hubTitle = Instance.new("TextLabel")
     hubTitle.Size = UDim2.new(1, 0, 1, 0)
     hubTitle.BackgroundTransparency = 1
-    hubTitle.Text = "🏛️ HAUNTED MARKET\n[Sell Loot • Trade • More Coming Soon]"
+    hubTitle.Text = "🏛️ HAUNTED MARKET HUB\n[Short Walk from All Plots]"
     hubTitle.TextColor3 = Color3.fromRGB(180, 240, 255)
     hubTitle.TextStrokeTransparency = 0
     hubTitle.TextSize = 15
     hubTitle.Font = Enum.Font.GothamBlack
     hubTitle.Parent = obeliskGui
 
-    -- 4 corner lantern pillars for atmosphere
-    local lanternPositions = {
-        Vector3.new(-30, 7, -30),
-        Vector3.new(30, 7, -30),
-        Vector3.new(-30, 7, 30),
-        Vector3.new(30, 7, 30),
-    }
-    local lanternColors = {
-        Color3.fromRGB(255, 100, 50),
-        Color3.fromRGB(80, 180, 255),
-        Color3.fromRGB(220, 80, 255),
-        Color3.fromRGB(80, 255, 140),
-    }
-    for i, lpos in ipairs(lanternPositions) do
-        local pillar = createPart({
-            Size = Vector3.new(2, 14, 2),
-            CFrame = CFrame.new(HUB_CENTER + lpos),
+    -- 6 Stone Walkways radiating directly from the Market Hub to each of the 6 plots
+    local NUM_PLOTS = 6
+    local PLOT_RADIUS = 105
+    for i = 1, NUM_PLOTS do
+        local angle = ((i - 1) * (2 * math.pi / NUM_PLOTS))
+        local targetX = math.sin(angle) * (PLOT_RADIUS - 44) -- Reaches front gate of plot
+        local targetZ = math.cos(angle) * (PLOT_RADIUS - 44)
+        local targetPos = Vector3.new(targetX, 0.5, targetZ)
+
+        local midPos = (Vector3.new(0, 0.5, 0) + targetPos) / 2
+        local pathLength = (targetPos - Vector3.new(0, 0.5, 0)).Magnitude
+
+        local pathPart = createPart({
+            Size = Vector3.new(8, 0.6, pathLength),
+            CFrame = CFrame.lookAt(midPos, targetPos),
             Material = Enum.Material.Cobblestone,
-            Color = Color3.fromRGB(50, 48, 58),
+            Color = Color3.fromRGB(60, 58, 65),
+            Name = "RoadToPlot_" .. i,
             Parent = hubModel,
         })
-        local lanternHead = createPart({
-            Size = Vector3.new(2.8, 2.8, 2.8),
-            CFrame = CFrame.new(HUB_CENTER + lpos + Vector3.new(0, 7.4, 0)),
+
+        -- Road lanterns along the pathway
+        local lantern1 = createPart({
+            Size = Vector3.new(1.2, 5, 1.2),
+            CFrame = CFrame.new(midPos + Vector3.new(-5, 2.5, 0)),
+            Material = Enum.Material.WoodPlanks,
+            Color = Color3.fromRGB(45, 35, 25),
+            Parent = hubModel,
+        })
+        local lamp1 = createPart({
+            Size = Vector3.new(1.4, 1.4, 1.4),
+            CFrame = lantern1.CFrame * CFrame.new(0, 3, 0),
             Material = Enum.Material.Neon,
-            Color = lanternColors[i],
+            Color = Color3.fromRGB(255, 180, 90),
             Parent = hubModel,
         })
-        local lLight = Instance.new("PointLight")
-        lLight.Color = lanternColors[i]
-        lLight.Range = 25
-        lLight.Brightness = 2
-        lLight.Parent = lanternHead
+        local lgt = Instance.new("PointLight")
+        lgt.Color = Color3.fromRGB(255, 180, 90)
+        lgt.Range = 15
+        lgt.Brightness = 1.8
+        lgt.Parent = lamp1
     end
 
-    -- === LOOT SHOP ZONE (South of obelisk, Z+) ===
-    -- Stall canopy
+    -- === LOOT SHOP STALL (Facing players entering from plots) ===
     local shopStall = createPart({
-        Size = Vector3.new(20, 1, 14),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 7, 28)),
+        Size = Vector3.new(16, 1, 10),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.5, 18)),
         Material = Enum.Material.WoodPlanks,
         Color = Color3.fromRGB(80, 40, 25),
         Name = "ShopStallRoof",
         Parent = hubModel,
     })
-    -- Stall counter
     local shopCounter = createPart({
-        Size = Vector3.new(14, 3, 3),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2, 24)),
+        Size = Vector3.new(12, 3, 3),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2, 15)),
         Material = Enum.Material.Wood,
         Color = Color3.fromRGB(90, 55, 30),
         Name = "ShopCounter",
         Parent = hubModel,
     })
-    -- Shop floor zone (the interactable area; ShopZone attribute used by client)
     local shopZone = createPart({
-        Size = Vector3.new(18, 0.3, 14),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 0.15, 30)),
+        Size = Vector3.new(16, 0.3, 12),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 0.15, 20)),
         Material = Enum.Material.SmoothPlastic,
         Color = Color3.fromRGB(50, 180, 70),
         CanCollide = false,
@@ -167,11 +169,10 @@ local function buildMarketHub(): Model
     })
     shopZone:SetAttribute("IsShopZone", true)
 
-    -- Glowing shop sign
     local shopSignGui = Instance.new("BillboardGui")
     shopSignGui.Name = "ShopSignGui"
     shopSignGui.Size = UDim2.new(9, 0, 2.5, 0)
-    shopSignGui.StudsOffset = Vector3.new(0, 7, 0)
+    shopSignGui.StudsOffset = Vector3.new(0, 6, 0)
     shopSignGui.AlwaysOnTop = true
     shopSignGui.Parent = shopCounter
 
@@ -192,10 +193,10 @@ local function buildMarketHub(): Model
     shopLight.Brightness = 1.8
     shopLight.Parent = shopCounter
 
-    -- Shopkeeper NPC dummy (decorative)
+    -- Shopkeeper NPC dummy
     local keeperBody = createPart({
         Size = Vector3.new(2, 3, 1.5),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2.5, 20)),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2.5, 12)),
         Material = Enum.Material.SmoothPlastic,
         Color = Color3.fromRGB(90, 70, 50),
         Name = "ShopkeeperBody",
@@ -203,7 +204,7 @@ local function buildMarketHub(): Model
     })
     local keeperHead = createPart({
         Size = Vector3.new(1.8, 1.8, 1.8),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 4.9, 20)),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 4.9, 12)),
         Material = Enum.Material.SmoothPlastic,
         Color = Color3.fromRGB(220, 180, 140),
         Shape = Enum.PartType.Ball,
@@ -212,7 +213,7 @@ local function buildMarketHub(): Model
     })
     local keeperHat = createPart({
         Size = Vector3.new(2.2, 1.6, 2.2),
-        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.1, 20)),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.1, 12)),
         Material = Enum.Material.SmoothPlastic,
         Color = Color3.fromRGB(20, 15, 25),
         Shape = Enum.PartType.Cylinder,
@@ -221,7 +222,6 @@ local function buildMarketHub(): Model
     })
     keeperHat.CFrame = keeperHat.CFrame * CFrame.Angles(0, 0, math.rad(90))
 
-    -- Shopkeeper nameplate
     local keeperGui = Instance.new("BillboardGui")
     keeperGui.Size = UDim2.new(5, 0, 1, 0)
     keeperGui.StudsOffset = Vector3.new(0, 3.5, 0)
@@ -238,20 +238,15 @@ local function buildMarketHub(): Model
     keeperLabel.Font = Enum.Font.GothamBold
     keeperLabel.Parent = keeperGui
 
-    -- [RESERVED ZONES] Future stalls on other sides:
-    -- North (Z-): Reserved for future upgrade/crafting stall
-    -- East (X+): Reserved for future trading stall
-    -- West (X-): Reserved for future challenge/event stall
-
-    -- Placeholder "Coming Soon" signs for other 3 stall positions
+    -- Future reserved stalls with signs
     local comingSoonPositions = {
-        { pos = Vector3.new(0, 2, -28), label = "⚗️ CRAFTING\n(Coming Soon)" },
-        { pos = Vector3.new(28, 2, 0),  label = "🔁 TRADING\n(Coming Soon)" },
-        { pos = Vector3.new(-28, 2, 0), label = "⚔️ CHALLENGE\n(Coming Soon)" },
+        { pos = Vector3.new(0, 2, -18), label = "⚗️ CRAFTING\n(Coming Soon)" },
+        { pos = Vector3.new(18, 2, 0),  label = "🔁 TRADING\n(Coming Soon)" },
+        { pos = Vector3.new(-18, 2, 0), label = "⚔️ CHALLENGE\n(Coming Soon)" },
     }
     for _, info in ipairs(comingSoonPositions) do
         local sign = createPart({
-            Size = Vector3.new(8, 5, 1),
+            Size = Vector3.new(7, 4.5, 1),
             CFrame = CFrame.new(HUB_CENTER + info.pos),
             Material = Enum.Material.WoodPlanks,
             Color = Color3.fromRGB(55, 40, 30),
@@ -259,7 +254,7 @@ local function buildMarketHub(): Model
         })
         local signGui2 = Instance.new("BillboardGui")
         signGui2.Size = UDim2.new(6, 0, 2.5, 0)
-        signGui2.StudsOffset = Vector3.new(0, 4, 0)
+        signGui2.StudsOffset = Vector3.new(0, 3.5, 0)
         signGui2.AlwaysOnTop = true
         signGui2.Parent = sign
 
@@ -280,13 +275,10 @@ end
 function WorldService.Init(shopServiceRef: any)
     ShopService = shopServiceRef
 
-    -- Build Central Market Hub
-    -- Remove old hub if any (e.g., from previous play session in Studio)
     local existing = Workspace:FindFirstChild("MarketHub")
     if existing then existing:Destroy() end
     local hubModel = buildMarketHub()
 
-    -- Wire server-side ShopZone touch for selling (server authority)
     local shopZone = hubModel:FindFirstChild("ShopZone") :: BasePart?
     if shopZone then
         shopZone.Touched:Connect(function(hit)
@@ -298,7 +290,6 @@ function WorldService.Init(shopServiceRef: any)
         end)
     end
 
-    -- Pulsing crystal animation
     task.spawn(function()
         local crystalPart = hubModel:FindFirstChild("ObeliskCrystal") :: BasePart?
         if not crystalPart then return end
@@ -318,4 +309,3 @@ function WorldService.Init(shopServiceRef: any)
 end
 
 return WorldService
-
