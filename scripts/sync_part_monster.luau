@@ -44,6 +44,16 @@ local PlotService: any
 local ItemDropService: any
 local ShopService: any
 
+local function ensureServices()
+    local sss = game:GetService("ServerScriptService")
+    local services = sss:FindFirstChild("Services") or sss
+    if not DataService then DataService = require(services:WaitForChild("DataService")) end
+    if not EconomyService then EconomyService = require(services:WaitForChild("EconomyService")) end
+    if not PlotService then PlotService = require(services:WaitForChild("PlotService")) end
+    if not ItemDropService then ItemDropService = require(services:WaitForChild("ItemDropService")) end
+    if not ShopService then ShopService = require(services:WaitForChild("ShopService")) end
+end
+
 -- Helper to create 3D spatial sound
 local function createSpatialSound(parent: Instance, name: string, soundId: string, volume: number, pitch: number): Sound
     local sound = Instance.new("Sound")
@@ -229,6 +239,8 @@ local function updateCoreVisuals(plotModel: Model, currentHp: number, maxHp: num
     local statusLine = ""
     local labelColor = Color3.fromRGB(240, 180, 255)
 
+    local currentLvl = plotModel:GetAttribute("CoreLevel") or 1
+
     if mode == "Combat" then
         statusLine = "\n⚔️ Under Attack! (Regen paused)"
         labelColor = Color3.fromRGB(255, 60, 60)
@@ -236,14 +248,15 @@ local function updateCoreVisuals(plotModel: Model, currentHp: number, maxHp: num
         statusLine = string.format("\n⏳ Healing in: %ds...", extraValue or 5)
         labelColor = Color3.fromRGB(255, 190, 60)
     elseif mode == "Healing" or mode == "HealingActive" then
-        statusLine = "\n💚 Regenerating (+25 HP)"
+        local healVal = extraValue or BalanceConfig.CoreLevels.GetRegenAmount(currentLvl)
+        statusLine = string.format("\n💚 Regenerating (+%d HP)", healVal)
         labelColor = Color3.fromRGB(90, 255, 130)
     elseif mode == "Full" or pct >= 1 then
         statusLine = "\n✨ Core Fortified"
         labelColor = Color3.fromRGB(240, 180, 255)
     end
 
-    label.Text = string.format("🔮 MANOR CORE\nHP: %d / %d%s", math.floor(currentHp), math.floor(maxHp), statusLine)
+    label.Text = string.format("🔮 MANOR CORE [Lv. %d]\nHP: %d / %d%s", currentLvl, math.floor(currentHp), math.floor(maxHp), statusLine)
     label.TextColor3 = labelColor
 end
 
@@ -316,7 +329,8 @@ function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotSe
                                 local tickInterval = BalanceConfig.Core.RegenTickInterval or 2.5
                                 if (now - (state.LastRegenTick or 0)) >= tickInterval then
                                     state.LastRegenTick = now
-                                    local healAmount = BalanceConfig.Core.RegenAmount or 25
+                                    local coreLvl = plotModel:GetAttribute("CoreLevel") or 1
+                                    local healAmount = BalanceConfig.CoreLevels.GetRegenAmount(coreLvl)
 
                                     local data = DataService.GetData(player)
                                     if data and data.UnlockedUpgrades["HolyAltar"] then
@@ -345,6 +359,7 @@ function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotSe
 end
 
 function MonsterService.InitPlotWave(player: Player, plotModel: Model)
+    ensureServices()
     local data = DataService.GetData(player)
     local waveNum = if data then data.WaveNumber else 1
     local coreLvl = if data and data.CoreLevel then data.CoreLevel else 1
@@ -367,6 +382,7 @@ function MonsterService.InitPlotWave(player: Player, plotModel: Model)
     }
 
     plotWaveStates[plotModel] = state
+    plotModel:SetAttribute("CoreLevel", coreLvl)
     updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
     syncWaveToClient(player, state)
 end
@@ -375,6 +391,7 @@ function MonsterService.ApplyCoreLevel(plotModel: Model, level: number)
     local state = plotWaveStates[plotModel]
     if not state then return end
 
+    plotModel:SetAttribute("CoreLevel", level)
     local newMax = BalanceConfig.CoreLevels.GetMaxHp(level)
     local player = plotOwnerMap[plotModel]
     if player then
@@ -436,11 +453,15 @@ function MonsterService.StartWave(player: Player, plotModel: Model)
         for _, mType in ipairs(monstersToSpawn) do
             if state.Status ~= "Active" then break end
 
-            local spawnOffset = Vector3.new(math.random(-45, 45), 3, 50)
+            -- Spawn strictly INSIDE the plot arena within the Cursed Rift zone (Z = 33 to 36, X = -14 to 14)
+            -- Plot base is 86x86 (X: -43 to 43, Z: -43 to 43), so Z=34 is comfortably inside before the entrance gate (Z=42)
+            local spawnOffset = Vector3.new(math.random(-14, 14), 3, math.random(33, 36))
             local worldSpawnPos = (plotBase.CFrame * CFrame.new(spawnOffset)).Position
 
             local monster = createMonsterModel(mType)
-            monster:SetPrimaryPartCFrame(CFrame.new(worldSpawnPos))
+            local corePos = manorCore.Position
+            -- Face directly towards Manor Core on spawn
+            monster:PivotTo(CFrame.lookAt(worldSpawnPos, Vector3.new(corePos.X, worldSpawnPos.Y, corePos.Z)))
             monster.Parent = plotModel
             table.insert(state.ActiveMonsters, monster)
             monsterOwnerMap[monster] = player
@@ -465,6 +486,7 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
     local deathSound = head and head:FindFirstChild("DeathSound") :: Sound?
 
     humanoid.Died:Connect(function()
+        ensureServices()
         local idx = table.find(state.ActiveMonsters, monster)
         if idx then table.remove(state.ActiveMonsters, idx) end
 
@@ -476,6 +498,13 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
         -- Physical loot item drop for shop selling
         if ItemDropService and ItemDropService.SpawnDrop and rootPart then
             ItemDropService.SpawnDrop(monsterType, rootPart.Position, player, plotModel)
+        end
+
+        -- Physical shimmering coin drop that scales directly with wave progression!
+        if ItemDropService and ItemDropService.SpawnCoinDrop and rootPart then
+            local coinAmount = BalanceConfig.CoreLevels.GetMonsterCoinDrop(monsterType, state.WaveNumber)
+            local coinOffset = Vector3.new(math.random(-2, 2), 0, math.random(-2, 2))
+            ItemDropService.SpawnCoinDrop(coinAmount, rootPart.Position + coinOffset, player, plotModel)
         end
 
         EconomyService.AddSouls(player, def.SoulDrop)
@@ -610,6 +639,7 @@ function MonsterService.TickTurrets(player: Player, plotModel: Model, state: Plo
 end
 
 function MonsterService.HandleWaveVictory(player: Player, plotModel: Model, state: PlotWaveState)
+    ensureServices()
     state.Status = "Victory"
 
     local waveRewardCoins = BalanceConfig.Waves.RewardBaseCoins + (state.WaveNumber * BalanceConfig.Waves.RewardCoinsPerWave)
@@ -635,6 +665,7 @@ function MonsterService.HandleWaveVictory(player: Player, plotModel: Model, stat
 end
 
 function MonsterService.HandleWaveDefeat(player: Player, plotModel: Model, state: PlotWaveState)
+    ensureServices()
     state.Status = "Defeat"
 
     for _, monster in ipairs(state.ActiveMonsters) do
@@ -644,8 +675,15 @@ function MonsterService.HandleWaveDefeat(player: Player, plotModel: Model, state
     end
     state.ActiveMonsters = {}
 
+    -- Reset wave progress back to Wave 1 when Manor Core health reaches 0!
+    local prevWave = state.WaveNumber
+    state.WaveNumber = 1
+    DataService.UpdateData(player, function(d: Types.PlayerData)
+        d.WaveNumber = 1
+    end)
+
     local notif = Network.GetEvent("Notification")
-    notif:FireClient(player, "💀 Manor Core Shattered! Wave Failed. Core regenerating...", Color3.fromRGB(255, 50, 50))
+    notif:FireClient(player, string.format("💀 Manor Core Hancur! Wave %d Gagal. Wave di-reset kembali ke Wave 1!", prevWave), Color3.fromRGB(255, 50, 50))
 
     syncWaveToClient(player, state)
 

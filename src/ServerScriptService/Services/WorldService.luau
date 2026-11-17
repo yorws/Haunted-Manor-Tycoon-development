@@ -12,6 +12,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Network = require(ReplicatedStorage.Modules.Network)
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 
 local WorldService = {}
 
@@ -99,12 +100,12 @@ local function buildMarketHub(): Model
     hubTitle.Parent = obeliskGui
 
     -- 6 Stone Walkways radiating directly from the Market Hub to each of the 6 plots
-    local NUM_PLOTS = 6
-    local PLOT_RADIUS = 105
+    local NUM_PLOTS = BalanceConfig.General.MaxPlots or 6
+    local PLOT_RADIUS = BalanceConfig.General.PlotRadius or 145
     for i = 1, NUM_PLOTS do
         local angle = ((i - 1) * (2 * math.pi / NUM_PLOTS))
-        local targetX = math.sin(angle) * (PLOT_RADIUS - 44) -- Reaches front gate of plot
-        local targetZ = math.cos(angle) * (PLOT_RADIUS - 44)
+        local targetX = math.sin(angle) * (PLOT_RADIUS - 42) -- Reaches front entrance gate of plot
+        local targetZ = math.cos(angle) * (PLOT_RADIUS - 42)
         local targetPos = Vector3.new(targetX, 0.5, targetZ)
 
         local midPos = (Vector3.new(0, 0.5, 0) + targetPos) / 2
@@ -119,26 +120,30 @@ local function buildMarketHub(): Model
             Parent = hubModel,
         })
 
-        -- Road lanterns along the pathway
-        local lantern1 = createPart({
-            Size = Vector3.new(1.2, 5, 1.2),
-            CFrame = CFrame.new(midPos + Vector3.new(-5, 2.5, 0)),
-            Material = Enum.Material.WoodPlanks,
-            Color = Color3.fromRGB(45, 35, 25),
-            Parent = hubModel,
-        })
-        local lamp1 = createPart({
-            Size = Vector3.new(1.4, 1.4, 1.4),
-            CFrame = lantern1.CFrame * CFrame.new(0, 3, 0),
-            Material = Enum.Material.Neon,
-            Color = Color3.fromRGB(255, 180, 90),
-            Parent = hubModel,
-        })
-        local lgt = Instance.new("PointLight")
-        lgt.Color = Color3.fromRGB(255, 180, 90)
-        lgt.Range = 15
-        lgt.Brightness = 1.8
-        lgt.Parent = lamp1
+        -- Road lanterns aligned symmetrically along the cobblestone edges
+        for _, side in ipairs({ -5.5, 5.5 }) do
+            local lanternPost = createPart({
+                Size = Vector3.new(1.2, 5, 1.2),
+                CFrame = pathPart.CFrame * CFrame.new(side, 2.5, 0),
+                Material = Enum.Material.WoodPlanks,
+                Color = Color3.fromRGB(45, 35, 25),
+                Name = "RoadLanternPost",
+                Parent = hubModel,
+            })
+            local lamp = createPart({
+                Size = Vector3.new(1.4, 1.4, 1.4),
+                CFrame = lanternPost.CFrame * CFrame.new(0, 3, 0),
+                Material = Enum.Material.Neon,
+                Color = Color3.fromRGB(255, 180, 90),
+                Name = "RoadLamp",
+                Parent = hubModel,
+            })
+            local lgt = Instance.new("PointLight")
+            lgt.Color = Color3.fromRGB(255, 180, 90)
+            lgt.Range = 16
+            lgt.Brightness = 1.8
+            lgt.Parent = lamp
+        end
     end
 
     -- === LOOT SHOP STALL (Facing players entering from plots) ===
@@ -192,6 +197,27 @@ local function buildMarketHub(): Model
     shopLight.Range = 20
     shopLight.Brightness = 1.8
     shopLight.Parent = shopCounter
+
+    -- Native Roblox ProximityPrompt for Old Grimwald Loot Shop
+    local shopPrompt = Instance.new("ProximityPrompt")
+    shopPrompt.Name = "ShopPrompt"
+    shopPrompt.ActionText = "Jual Semua Loot"
+    shopPrompt.ObjectText = "Old Grimwald"
+    shopPrompt.KeyboardKeyCode = Enum.KeyCode.E
+    shopPrompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+    shopPrompt.HoldDuration = 0
+    shopPrompt.MaxActivationDistance = 16
+    shopPrompt.RequiresLineOfSight = false
+    shopPrompt.Parent = shopCounter
+
+    shopPrompt.Triggered:Connect(function(triggeringPlayer: Player)
+        if not ShopService then
+            ShopService = require(game:GetService("ServerScriptService").Services.ShopService)
+        end
+        if ShopService and ShopService.SellAllInventory then
+            ShopService.SellAllInventory(triggeringPlayer)
+        end
+    end)
 
     -- Shopkeeper NPC dummy
     local keeperBody = createPart({

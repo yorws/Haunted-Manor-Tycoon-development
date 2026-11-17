@@ -9,11 +9,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
--- Require Network & Configs
 local Network = require(ReplicatedStorage.Modules.Network)
 local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 
--- Require Services
 local Services = ServerScriptService:WaitForChild("Services")
 local DataService = require(Services:WaitForChild("DataService"))
 local EconomyService = require(Services:WaitForChild("EconomyService"))
@@ -30,10 +28,8 @@ print("========================================")
 print("  Initializing Haunted Manor Tycoon...  ")
 print("========================================")
 
--- 1. Initialize Network Remotes
 Network.InitServer()
 
--- 2. Wire and Initialize Services
 EconomyService.Init(DataService)
 ItemDropService.Init(DataService, EconomyService)
 ShopService.Init(DataService, EconomyService, PlotService, MonsterService)
@@ -44,29 +40,29 @@ MonsterService.Init(DataService, EconomyService, PlotService, ItemDropService, S
 CombatService.Init(DataService)
 MonetizationService.Init(DataService, EconomyService)
 
--- 3. Register Data Handshake Remote
 local getPlayerDataFn = Network.GetFunction("GetPlayerData")
 getPlayerDataFn.OnServerInvoke = function(player: Player)
     return DataService.GetData(player)
 end
 
--- 4. Player Lifecycle Handlers
-local function onPlayerAdded(player: Player)
+local processedPlayers: { [number]: boolean } = {}
+
+local function handleNewPlayer(player: Player)
+    if processedPlayers[player.UserId] then
+        return
+    end
+    processedPlayers[player.UserId] = true
+
     print(string.format("[ServerMain] Player joined: %s (%d)", player.Name, player.UserId))
-
-    -- Load persistent or default data
-    local data = DataService.LoadData(player)
-
-    -- Check GamePass ownership
+    
+    DataService.LoadData(player)
     MonetizationService.CheckPlayerPasses(player)
-
-    -- Assign a plot
+    
     local plot = PlotService.AssignPlot(player)
     if plot then
         MonsterService.InitPlotWave(player, plot)
     end
 
-    -- Character lifecycle
     local function onCharacterAdded(character: Model)
         CombatService.GiveWeapon(player)
 
@@ -76,16 +72,15 @@ local function onPlayerAdded(player: Player)
                 assignedPlot = PlotService.AssignPlot(player)
             end
             if assignedPlot then
-                local manorCore = assignedPlot:FindFirstChild("ManorCore") :: BasePart?
                 local spawnPart = assignedPlot:FindFirstChild("PlotSpawn") :: BasePart?
-                for _ = 1, 20 do
+                local manorCore = assignedPlot:FindFirstChild("ManorCore") :: BasePart?
+                for _ = 1, 30 do
                     local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-                    if hrp then
-                        if manorCore then
-                            character:PivotTo(manorCore.CFrame * CFrame.new(0, 3, 14))
-                        elseif spawnPart then
-                            character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3, 0))
-                        end
+                    if hrp and manorCore then
+                        character:PivotTo(manorCore.CFrame * CFrame.new(0, 3, 14))
+                        break
+                    elseif hrp and spawnPart then
+                        character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3.5, 0))
                         break
                     end
                     task.wait(0.1)
@@ -99,13 +94,11 @@ local function onPlayerAdded(player: Player)
     end
     player.CharacterAdded:Connect(onCharacterAdded)
 
-    -- Send initial data sync to client
     EconomyService.SyncClient(player)
 end
 
 local function onPlayerRemoving(player: Player)
-    print(string.format("[ServerMain] Player left: %s", player.Name))
-
+    processedPlayers[player.UserId] = nil
     VisitorService.ClearPlayerVisitors(player)
     MonsterService.ClearPlayerWave(player)
     local plot = PlotService.GetPlayerPlot(player)
@@ -118,16 +111,12 @@ local function onPlayerRemoving(player: Player)
     DataService.ReleaseSession(player)
 end
 
-Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerAdded:Connect(handleNewPlayer)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
--- Handle any players already connected (e.g. fast Studio start)
-for _, player in ipairs(Players:GetPlayers()) do
-    task.spawn(onPlayerAdded, player)
+for _, p in ipairs(Players:GetPlayers()) do
+    task.spawn(handleNewPlayer, p)
 end
 
--- 5. Start Persistent Autosave
 DataService.StartAutosave()
-
 print("[ServerMain] Haunted Manor Tycoon server ready!")
-

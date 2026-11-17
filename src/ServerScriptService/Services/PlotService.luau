@@ -277,9 +277,9 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     plotModel.Name = "Plot_" .. tostring(plotIndex)
     plotModel:SetAttribute("PlotIndex", plotIndex)
 
-    -- Plot Ground (90 x 90 studs)
+    -- Plot Ground (86 x 86 studs - prevents collision between neighboring plots)
     local ground = createPart({
-        Size = Vector3.new(90, 2, 90),
+        Size = BalanceConfig.General.PlotSize or Vector3.new(86, 2, 86),
         CFrame = plotCFrame,
         Material = Enum.Material.Slate,
         Color = Color3.fromRGB(35, 38, 35),
@@ -289,22 +289,22 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
 
     -- Plot Boundary Curbs (Left, Right, Back; Front is open facing Market Hub)
     createPart({
-        Size = Vector3.new(92, 3, 2),
-        CFrame = plotCFrame * CFrame.new(0, 1.5, -45),
+        Size = Vector3.new(88, 3, 2),
+        CFrame = plotCFrame * CFrame.new(0, 1.5, -43),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
     })
     createPart({
-        Size = Vector3.new(2, 3, 92),
-        CFrame = plotCFrame * CFrame.new(-45, 1.5, 0),
+        Size = Vector3.new(2, 3, 88),
+        CFrame = plotCFrame * CFrame.new(-43, 1.5, 0),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
     })
     createPart({
-        Size = Vector3.new(2, 3, 92),
-        CFrame = plotCFrame * CFrame.new(45, 1.5, 0),
+        Size = Vector3.new(2, 3, 88),
+        CFrame = plotCFrame * CFrame.new(43, 1.5, 0),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(60, 60, 60),
         Parent = plotModel,
@@ -345,17 +345,17 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     coreLabel.Name = "CoreLabel"
     coreLabel.Size = UDim2.new(1, 0, 1, 0)
     coreLabel.BackgroundTransparency = 1
-    coreLabel.Text = "🔮 MANOR CORE\nHP: 500 / 500"
+    coreLabel.Text = "🔮 MANOR CORE [Lv. 1]\nHP: 500 / 500"
     coreLabel.TextColor3 = Color3.fromRGB(240, 180, 255)
     coreLabel.TextStrokeTransparency = 0
     coreLabel.TextSize = 16
     coreLabel.Font = Enum.Font.GothamBold
     coreLabel.Parent = coreGui
 
-    -- Coin Vault Pad (Collects visitor coins)
+    -- Coin Vault Pad (Collects visitor coins - positioned safely to the side)
     local vaultPad = createPart({
         Size = Vector3.new(7, 0.2, 7),
-        CFrame = plotCFrame * CFrame.new(-12, 1.1, 35),
+        CFrame = plotCFrame * CFrame.new(-22, 1.1, 33),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(245, 200, 40),
         Name = "VaultPad",
@@ -380,10 +380,10 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     vaultLabel.Font = Enum.Font.GothamBold
     vaultLabel.Parent = vaultGui
 
-    -- Wave Summon Bell Pad (Summons next wave early for Souls)
+    -- Wave Summon Bell Pad (Summons next wave early for Souls - positioned safely to the side)
     local bellPad = createPart({
         Size = Vector3.new(7, 0.2, 7),
-        CFrame = plotCFrame * CFrame.new(12, 1.1, 35),
+        CFrame = plotCFrame * CFrame.new(22, 1.1, 33),
         Material = Enum.Material.Neon,
         Color = Color3.fromRGB(180, 40, 40),
         Name = "WaveBellPad",
@@ -408,10 +408,44 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     bellLabel.Font = Enum.Font.GothamBold
     bellLabel.Parent = bellGui
 
-    -- Plot Entrance Gate & Welcome Sign (At front Z = 44, facing Market Hub)
+    -- Cursed Rift [Monster Incursion Zone] (Visual glowing portal pad inside the plot where monsters spawn)
+    local riftPad = createPart({
+        Size = Vector3.new(28, 0.1, 8),
+        CFrame = plotCFrame * CFrame.new(0, 1.05, 34),
+        Material = Enum.Material.Neon,
+        Color = Color3.fromRGB(130, 25, 60),
+        Name = "MonsterSpawnRift",
+        CanCollide = false,
+        Parent = plotModel,
+    })
+    local riftLight = Instance.new("PointLight")
+    riftLight.Color = Color3.fromRGB(255, 40, 80)
+    riftLight.Range = 16
+    riftLight.Brightness = 2
+    riftLight.Parent = riftPad
+
+    local riftGui = Instance.new("BillboardGui")
+    riftGui.Name = "RiftGui"
+    riftGui.Size = UDim2.new(6, 0, 2, 0)
+    riftGui.StudsOffset = Vector3.new(0, 3, 0)
+    riftGui.AlwaysOnTop = true
+    riftGui.Parent = riftPad
+
+    local riftLabel = Instance.new("TextLabel")
+    riftLabel.Name = "RiftLabel"
+    riftLabel.Size = UDim2.new(1, 0, 1, 0)
+    riftLabel.BackgroundTransparency = 1
+    riftLabel.Text = "🌀 CURSED RIFT\n[Monster Incursion Zone]"
+    riftLabel.TextColor3 = Color3.fromRGB(255, 80, 120)
+    riftLabel.TextStrokeTransparency = 0
+    riftLabel.TextSize = 13
+    riftLabel.Font = Enum.Font.GothamBold
+    riftLabel.Parent = riftGui
+
+    -- Plot Entrance Gate & Welcome Sign (At front Z = 42, facing Market Hub)
     local gateArch = createPart({
-        Size = Vector3.new(16, 12, 2),
-        CFrame = plotCFrame * CFrame.new(0, 6, 44),
+        Size = Vector3.new(18, 12, 2),
+        CFrame = plotCFrame * CFrame.new(0, 6, 42),
         Material = Enum.Material.Cobblestone,
         Color = Color3.fromRGB(45, 45, 50),
         Name = "EntranceGate",
@@ -439,7 +473,7 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
     local plotSpawn = Instance.new("SpawnLocation")
     plotSpawn.Name = "PlotSpawn"
     plotSpawn.Size = Vector3.new(6, 0.4, 6)
-    plotSpawn.CFrame = plotCFrame * CFrame.new(0, 1.2, 38)
+    plotSpawn.CFrame = plotCFrame * CFrame.new(0, 1.2, 36)
     plotSpawn.Anchored = true
     plotSpawn.CanCollide = false
     plotSpawn.Transparency = 1
@@ -492,6 +526,10 @@ local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
 
     plotModel.PrimaryPart = ground
     plotModel.Parent = plotsFolder
+
+    -- Attach native ProximityPrompt to Manor Core
+    PlotService.UpdateCoreLevelPad(plotModel, 1)
+
     return plotModel
 end
 
@@ -510,9 +548,10 @@ function PlotService.Init(dataServiceRef: any, economyServiceRef: any, shopServi
     end
 
     -- Circular/Hexagonal layout: 6 plots surrounding the Central Market Hub at (0, 1, 0)
-    -- Radius = 105 studs. Front entrance gate faces inward directly towards Market Hub!
-    local PLOT_RADIUS = 105
-    local NUM_PLOTS = 6
+    -- Radius = 145 studs. Front entrance gate faces inward directly towards Market Hub!
+    -- With plot size 86x86, this provides a clean 27+ stud gap between neighboring plots (ZERO collision!).
+    local PLOT_RADIUS = BalanceConfig.General.PlotRadius or 145
+    local NUM_PLOTS = BalanceConfig.General.MaxPlots or 6
 
     for index = 1, NUM_PLOTS do
         local angle = ((index - 1) * (2 * math.pi / NUM_PLOTS))
@@ -825,7 +864,7 @@ function PlotService.ReleasePlot(player: Player)
         if coreGui then
             local label = coreGui:FindFirstChild("CoreLabel") :: TextLabel?
             if label then
-                label.Text = "🔮 MANOR CORE\nHP: 500 / 500"
+                label.Text = "🔮 MANOR CORE [Lv. 1]\nHP: 500 / 500"
             end
         end
     end
@@ -853,7 +892,66 @@ function PlotService.ReleasePlot(player: Player)
 end
 
 function PlotService.UpdateCoreLevelPad(plotModel: Model, level: number)
-    -- Proximity E-key system handles visual upgrade prompt
+    plotModel:SetAttribute("CoreLevel", level)
+
+    local manorCore = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not manorCore then return end
+
+    -- Update billboard label level heading
+    local coreGui = manorCore:FindFirstChild("CoreGui")
+    if coreGui then
+        local label = coreGui:FindFirstChild("CoreLabel") :: TextLabel?
+        if label then
+            local currentText = label.Text
+            if string.find(currentText, "🔮 MANOR CORE") then
+                label.Text = string.gsub(currentText, "🔮 MANOR CORE[^\n]*", string.format("🔮 MANOR CORE [Lv. %d]", level))
+            else
+                label.Text = string.format("🔮 MANOR CORE [Lv. %d]\nHP: %d / %d", level, 500 + ((level - 1) * 200), 500 + ((level - 1) * 200))
+            end
+        end
+    end
+
+    local prompt = manorCore:FindFirstChild("CoreUpgradePrompt") :: ProximityPrompt?
+    if not prompt then
+        prompt = Instance.new("ProximityPrompt")
+        prompt.Name = "CoreUpgradePrompt"
+        prompt.KeyboardKeyCode = Enum.KeyCode.E
+        prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+        prompt.HoldDuration = 0.4
+        prompt.MaxActivationDistance = 16
+        prompt.RequiresLineOfSight = false
+        prompt.Parent = manorCore
+
+        prompt.Triggered:Connect(function(triggeringPlayer: Player)
+            local owner = plotOwnerMap[plotModel]
+            if owner ~= triggeringPlayer then
+                local notif = Network.GetEvent("Notification")
+                if notif then
+                    notif:FireClient(triggeringPlayer, "⛔ Ini bukan Manor Core milikmu!", Color3.fromRGB(255, 80, 80))
+                end
+                return
+            end
+
+            if not ShopService then
+                ShopService = require(game:GetService("ServerScriptService").Services.ShopService)
+            end
+            if ShopService and ShopService.UpgradeCore then
+                ShopService.UpgradeCore(triggeringPlayer)
+            end
+        end)
+    end
+
+    local maxLvl = BalanceConfig.CoreLevels.MaxLevel or 20
+    if level >= maxLvl then
+        prompt.ActionText = "Max Level"
+        prompt.ObjectText = string.format("Manor Core ⭐ Lv.%d (MAX)", level)
+        prompt.Enabled = false
+    else
+        local nextCost = BalanceConfig.CoreLevels.GetUpgradeCost(level)
+        prompt.ActionText = "Upgrade Manor Core"
+        prompt.ObjectText = string.format("Lv.%d ➔ Lv.%d  (Biaya: %d 🪙)", level, level + 1, nextCost)
+        prompt.Enabled = true
+    end
 end
 
 function PlotService.GetPlayerPlot(player: Player): Model?

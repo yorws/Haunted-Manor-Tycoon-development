@@ -9,6 +9,8 @@ local BalanceConfig = {}
 
 BalanceConfig.General = {
     MaxPlots = 6,
+    PlotRadius = 145,             -- Distance from Central Market Hub (0, 1, 0) to plot centers (clean 27+ stud gap, no overlap)
+    PlotSize = Vector3.new(86, 2, 86), -- Dimensions of each plot base
     StarterCoins = 50,
     StarterSouls = 0,
     AutosaveInterval = 60,
@@ -34,6 +36,23 @@ BalanceConfig.CoreLevels = {
     end,
     GetMaxHp = function(level: number): number
         return 500 + ((level - 1) * 200) -- Lvl 1: 500, Lvl 10: 2300, Lvl 20: 4300
+    end,
+    -- Scales Manor Core health regeneration per tick with core upgrades
+    GetRegenAmount = function(level: number): number
+        -- Lvl 1: 25 HP / tick, Lvl 5: 45, Lvl 10: 70, Lvl 15: 95, Lvl 20: 120 HP / tick
+        return math.floor(25 + ((level - 1) * 5))
+    end,
+    -- Monster Coin Drop formula: scales directly with wave progression
+    -- Higher waves yield substantially more coins per monster!
+    GetMonsterCoinDrop = function(monsterType: string, waveNumber: number): number
+        local base = 8
+        if monsterType == "Zombie" then
+            base = 16
+        elseif monsterType == "Wraith" then
+            base = 30
+        end
+        local waveBonus = waveNumber * 4
+        return math.floor(base + waveBonus + math.random(1, 4))
     end,
     -- Proximity radius for E-key interaction (studs from ManorCore)
     UpgradeInteractRadius = 14,

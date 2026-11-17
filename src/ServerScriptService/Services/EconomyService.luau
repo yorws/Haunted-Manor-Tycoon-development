@@ -20,6 +20,13 @@ local playerVaults: { [number]: number } = {}
 -- References injected by bootstrap or lazy-required
 local DataService: any
 
+local function getDataService(): any
+    if not DataService then
+        DataService = require(game:GetService("ServerScriptService").Services.DataService)
+    end
+    return DataService
+end
+
 function EconomyService.Init(dataServiceRef: any)
     DataService = dataServiceRef
 
@@ -35,7 +42,8 @@ function EconomyService.GetVaultBalance(player: Player): number
 end
 
 function EconomyService.DepositToVault(player: Player, rawAmount: number)
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if not data then return end
 
     local multiplier = 1.0
@@ -64,14 +72,15 @@ function EconomyService.AddCoins(player: Player, amount: number, applyMultiplier
     if amount <= 0 then return 0 end
     local finalAmount = amount
 
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if not data then return 0 end
 
     if applyMultipliers and data.HasDoubleCoins then
         finalAmount = math.floor(amount * MonetizationConfig.Perks.DoubleCoinsMultiplier)
     end
 
-    DataService.UpdateData(player, function(d: Types.PlayerData)
+    ds.UpdateData(player, function(d: Types.PlayerData)
         d.Coins += finalAmount
     end)
 
@@ -81,10 +90,11 @@ end
 
 function EconomyService.AddSouls(player: Player, amount: number): number
     if amount <= 0 then return 0 end
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if not data then return 0 end
 
-    DataService.UpdateData(player, function(d: Types.PlayerData)
+    ds.UpdateData(player, function(d: Types.PlayerData)
         d.Souls += amount
     end)
 
@@ -94,10 +104,11 @@ end
 
 function EconomyService.DeductCoins(player: Player, amount: number): boolean
     if amount <= 0 then return true end
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if not data or data.Coins < amount then return false end
 
-    DataService.UpdateData(player, function(d: Types.PlayerData)
+    ds.UpdateData(player, function(d: Types.PlayerData)
         d.Coins -= amount
     end)
 
@@ -107,10 +118,11 @@ end
 
 function EconomyService.DeductSouls(player: Player, amount: number): boolean
     if amount <= 0 then return true end
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if not data or data.Souls < amount then return false end
 
-    DataService.UpdateData(player, function(d: Types.PlayerData)
+    ds.UpdateData(player, function(d: Types.PlayerData)
         d.Souls -= amount
     end)
 
@@ -119,7 +131,8 @@ function EconomyService.DeductSouls(player: Player, amount: number): boolean
 end
 
 function EconomyService.SyncClient(player: Player)
-    local data = DataService.GetData(player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
     if data then
         local updateEvent = Network.GetEvent("PlayerDataUpdated")
         updateEvent:FireClient(player, data)
