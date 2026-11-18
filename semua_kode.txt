@@ -1,0 +1,4334 @@
+﻿n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ReplicatedStorage\Config\BalanceConfig.luau ===n--!strict
+--[[
+    BalanceConfig.luau
+    Centralized tuning values for Wave Survival Monster Hunting, Core Levels, and Loot drops.
+]]
+
+local BalanceConfig = {}
+
+BalanceConfig.General = {
+    StartingCoins = 100,
+    StartingSouls = 0,
+    StarterCoins = 100,
+    StarterSouls = 0,
+    MaxPlots = 6,
+    PlotRadius = 145,
+    PlotSize = Vector3.new(86, 2, 86),
+    AutoSaveInterval = 60,
+    AutosaveInterval = 60,
+    MaxSaveRetries = 3,
+    DataStoreKey = "HauntedManorSurvival_v1",
+}
+
+BalanceConfig.Core = {
+    BaseMaxHealth = 500,
+    OutOfCombatCooldown = 6,
+    RegenTickInterval = 2.5,
+    DefeatRecoveryDuration = 5,
+}
+
+BalanceConfig.CoreLevels = {
+    MaxLevel = 20,
+    GetMaxHp = function(level: number): number
+        return 500 + ((level - 1) * 200)
+    end,
+    GetRegenAmount = function(level: number): number
+        return 25 + ((level - 1) * 15)
+    end,
+    GetUpgradeCost = function(currentLevel: number): number
+        return math.floor(150 * (1.42 ^ (currentLevel - 1)))
+    end,
+    GetWeaponDamageMultiplier = function(level: number): number
+        return 1 + ((level - 1) * 0.15)
+    end,
+    GetMonsterCoinDrop = function(monsterType: string, waveNumber: number): number
+        local base = if monsterType == "Wraith" then 35 elseif monsterType == "Zombie" then 18 else 10
+        return math.floor(base + (waveNumber * 2.5))
+    end,
+    Skills = {
+        Level10 = {
+            Range = 45,
+            TargetCount = 10,
+            Damage = 175,
+            Cooldown = 35,
+        },
+        Level20 = {
+            Duration = 5,
+            Cooldown = 50,
+        },
+    },
+}
+
+BalanceConfig.Waves = {
+    AutoWaveInterval = 45,
+    RewardBaseCoins = 90,
+    RewardCoinsPerWave = 60,
+    RewardBaseSouls = 8,
+    RewardSoulsPerWave = 4,
+    GetWaveRewardCoins = function(waveNumber: number): number
+        local w = math.max(1, waveNumber)
+        return math.floor(90 + (60 * (w ^ 1.35)))
+    end,
+    GetWaveRewardSouls = function(waveNumber: number): number
+        local w = math.max(1, waveNumber)
+        return math.floor(8 + (4 * w))
+    end,
+}
+
+BalanceConfig.Weapon = {
+    Name = "Holy Lantern",
+    BaseDamage = 35,
+    Range = 36,
+    Cooldown = 0.55,
+    LightColor = Color3.fromRGB(255, 230, 140),
+    SoundId = "rbxassetid://130113322",
+}
+
+BalanceConfig.Monsters = {
+    Ghost = {
+        DisplayName = "ðŸ‘» Restless Ghost",
+        WalkSpeed = 21,
+        MaxHealth = 50,
+        Damage = 10,
+        SoulDrop = 1,
+        AttackRange = 5,
+        AttackRate = 1.0,
+        Ranged = false,
+        Color = Color3.fromRGB(150, 240, 255),
+        Transparency = 0.45,
+        Material = Enum.Material.ForceField,
+        Sounds = {
+            Groan = "rbxassetid://125610525645835",
+            Attack = "rbxassetid://9113951479",
+            Death = "rbxassetid://139090255801447",
+            Pitch = 1.15,
+            Volume = 1.5,
+        },
+    },
+    Zombie = {
+        DisplayName = "ðŸ§Ÿ Grave Zombie",
+        WalkSpeed = 9,
+        MaxHealth = 175,
+        Damage = 22,
+        SoulDrop = 2,
+        AttackRange = 5,
+        AttackRate = 1.4,
+        Ranged = false,
+        Color = Color3.fromRGB(65, 95, 60),
+        Transparency = 0,
+        Material = Enum.Material.CorrodedMetal,
+        Sounds = {
+            Groan = "rbxassetid://127809799844346",
+            Attack = "rbxassetid://109819443674858",
+            Death = "rbxassetid://106129958887908",
+            Pitch = 0.9,
+            Volume = 1.6,
+        },
+    },
+    Wraith = {
+        DisplayName = "ðŸ‘¿ Shadow Wraith",
+        WalkSpeed = 13,
+        MaxHealth = 95,
+        Damage = 16,
+        SoulDrop = 3,
+        AttackRange = 28,
+        AttackRate = 2.0,
+        Ranged = true,
+        Color = Color3.fromRGB(45, 15, 60),
+        Transparency = 0.2,
+        Material = Enum.Material.Neon,
+        Sounds = {
+            Groan = "rbxassetid://9113985717",
+            Attack = "rbxassetid://131653988627020",
+            Death = "rbxassetid://80984191739263",
+            Pitch = 1.0,
+            Volume = 1.6,
+        },
+    },
+}
+
+BalanceConfig.Upgrades = {}
+
+BalanceConfig.MonsterDrops = {
+    Ghost = {
+        ItemId = "Ectoplasm",
+        DisplayName = "ðŸ’§ Ectoplasm",
+        SellPrice = 20,
+        Color = Color3.fromRGB(110, 235, 255),
+    },
+    Zombie = {
+        ItemId = "RottingBone",
+        DisplayName = "ðŸ¦´ Cursed Bone",
+        SellPrice = 45,
+        Color = Color3.fromRGB(220, 210, 185),
+    },
+    Wraith = {
+        ItemId = "WraithEssence",
+        DisplayName = "ðŸ”® Wraith Essence",
+        SellPrice = 110,
+        Color = Color3.fromRGB(190, 80, 255),
+    },
+}
+
+BalanceConfig.Items = {
+    Ectoplasm = {
+        DisplayName = "ðŸ’§ Ectoplasm",
+        SellCoins = 20,
+        DropChance = 0.65,
+        Color = Color3.fromRGB(110, 235, 255),
+    },
+    RottingBone = {
+        DisplayName = "ðŸ¦´ Cursed Bone",
+        SellCoins = 45,
+        DropChance = 0.55,
+        Color = Color3.fromRGB(220, 210, 185),
+    },
+    WraithEssence = {
+        DisplayName = "ðŸ”® Wraith Essence",
+        SellCoins = 110,
+        DropChance = 0.50,
+        Color = Color3.fromRGB(190, 80, 255),
+    },
+}
+
+return BalanceConfig
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ReplicatedStorage\Config\MonetizationConfig.luau ===n--!strict
+--[[
+    MonetizationConfig.luau
+    Placeholder IDs and configurations for GamePasses and Developer Products.
+    Replace 0 with real Roblox asset IDs before publishing.
+]]
+
+local MonetizationConfig = {}
+
+-- GamePass Asset IDs (Create these in Roblox Creator Dashboard)
+MonetizationConfig.Gamepasses = {
+    DoubleCoins = 0, -- Grants x2 Coins earned from visitors & waves
+    VipPlot = 0,     -- Gives golden plot aesthetic, 20% room discount, +10 bonus souls on join
+}
+
+-- Developer Product IDs (Create these in Roblox Creator Dashboard)
+MonetizationConfig.DevProducts = {
+    Souls50 = 0,   -- Instant +50 Souls pack
+    Souls200 = 0,  -- Instant +200 Souls mega pack
+}
+
+-- Multipliers & Perks
+MonetizationConfig.Perks = {
+    DoubleCoinsMultiplier = 2.0,
+    VipDiscountMultiplier = 0.8, -- 20% off Coin upgrade costs
+    VipSoulsGift = 10,
+}
+
+return MonetizationConfig
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ReplicatedStorage\Modules\Network.luau ===n--!strict
+--[[
+    Network.luau
+    Central network definition and initialization module.
+    Automatically sets up RemoteFunctions and RemoteEvents in ReplicatedStorage.
+]]
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Network = {}
+
+local REMOTE_FUNCTIONS = {
+    "RequestPurchase",
+    "RequestCollectVault",
+    "RequestStartWave",
+    "GetPlayerData",
+    "RequestSellInventory",
+    "RequestCoreLevelUp",
+}
+
+local REMOTE_EVENTS = {
+    "AttackRequest",
+    "PlayerDataUpdated",
+    "PlotAssigned",
+    "WaveStateUpdated",
+    "Notification",
+    "CombatVisual",
+}
+
+local remotesFolder: Folder
+
+local function getOrCreateRemotesFolder(): Folder
+    local folder = ReplicatedStorage:FindFirstChild("Remotes")
+    if not folder then
+        if RunService:IsServer() then
+            folder = Instance.new("Folder")
+            folder.Name = "Remotes"
+            folder.Parent = ReplicatedStorage
+        else
+            folder = ReplicatedStorage:WaitForChild("Remotes", 10) :: Folder
+            assert(folder, "[Network] Failed to locate Remotes folder on client!")
+        end
+    end
+    return folder :: Folder
+end
+
+remotesFolder = getOrCreateRemotesFolder()
+
+function Network.InitServer()
+    assert(RunService:IsServer(), "[Network] InitServer can only be called on the server!")
+    
+    for _, name in ipairs(REMOTE_FUNCTIONS) do
+        if not remotesFolder:FindFirstChild(name) then
+            local rf = Instance.new("RemoteFunction")
+            rf.Name = name
+            rf.Parent = remotesFolder
+        end
+    end
+
+    for _, name in ipairs(REMOTE_EVENTS) do
+        if not remotesFolder:FindFirstChild(name) then
+            local re = Instance.new("RemoteEvent")
+            re.Name = name
+            re.Parent = remotesFolder
+        end
+    end
+end
+
+function Network.GetFunction(name: string): RemoteFunction
+    local remote = remotesFolder:FindFirstChild(name)
+    if not remote then
+        if RunService:IsClient() then
+            remote = remotesFolder:WaitForChild(name, 10)
+        else
+            remote = Instance.new("RemoteFunction")
+            remote.Name = name
+            remote.Parent = remotesFolder
+        end
+    end
+    assert(remote and remote:IsA("RemoteFunction"), "[Network] RemoteFunction not found: " .. name)
+    return remote
+end
+
+function Network.GetEvent(name: string): RemoteEvent
+    local remote = remotesFolder:FindFirstChild(name)
+    if not remote then
+        if RunService:IsClient() then
+            remote = remotesFolder:WaitForChild(name, 10)
+        else
+            remote = Instance.new("RemoteEvent")
+            remote.Name = name
+            remote.Parent = remotesFolder
+        end
+    end
+    assert(remote and remote:IsA("RemoteEvent"), "[Network] RemoteEvent not found: " .. name)
+    return remote
+end
+
+return Network
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ReplicatedStorage\Modules\Types.luau ===n--!strict
+--[[
+    Types.luau
+    Central Luau type definitions for Haunted Manor Tycoon.
+]]
+
+export type MonsterDropItem = {
+    ItemId: string,
+    DisplayName: string,
+    SellPrice: number,
+    Color: Color3,
+}
+
+export type PlayerData = {
+    Coins: number,
+    Souls: number,
+    UnlockedUpgrades: { [string]: boolean },
+    WaveNumber: number,
+    MonstersDefeated: number,
+    HasDoubleCoins: boolean,
+    HasVip: boolean,
+    CoreLevel: number,
+    Inventory: { [string]: number },
+    LastSaveTimestamp: number,
+}
+
+export type UpgradeDef = {
+    Id: string,
+    DisplayName: string,
+    Cost: number,
+    Currency: string,
+    Requires: string?,
+    IncomePerVisitor: number?,
+    VisitorIntervalBonus: number?,
+    DefenseType: string?,
+    TurretRange: number?,
+    TurretDamage: number?,
+    TurretCooldown: number?,
+    CoreHpBonus: number?,
+    WeaponDamageMultiplier: number?,
+    Description: string,
+    Color: Color3,
+    PadPosition: Vector3,
+}
+
+export type MonsterDef = {
+    DisplayName: string,
+    WalkSpeed: number,
+    MaxHealth: number,
+    Damage: number,
+    SoulDrop: number,
+    AttackRange: number,
+    AttackRate: number,
+    Ranged: boolean,
+    Color: Color3,
+    Transparency: number,
+    Material: Enum.Material,
+    Sounds: {
+        Groan: string,
+        Attack: string,
+        Death: string,
+        Pitch: number,
+        Volume: number,
+    }?,
+}
+
+export type WaveStatus = "Waiting" | "Active" | "Victory" | "Defeat"
+
+export type WaveState = {
+    WaveNumber: number,
+    Status: WaveStatus,
+    TimeRemaining: number,
+    MonstersRemaining: number,
+    CoreHealth: number,
+    CoreMaxHealth: number,
+    CoreLevel: number,
+    IsGhostCloaked: boolean?,
+}
+
+return {}
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\ServerMain.server.luau ===n--!strict
+--[[
+    ServerMain.server.luau
+    Bootstraps all backend services safely and guarantees plot assignment & spawn teleport.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local Network = require(ReplicatedStorage.Modules.Network)
+if Network.InitServer then
+    Network.InitServer()
+end
+
+local Services = ServerScriptService:WaitForChild("Services")
+local DataService = require(Services:WaitForChild("DataService"))
+local EconomyService = require(Services:WaitForChild("EconomyService"))
+local ShopService = require(Services:WaitForChild("ShopService"))
+local PlotService = require(Services:WaitForChild("PlotService"))
+local ItemDropService = require(Services:WaitForChild("ItemDropService"))
+local MonsterService = require(Services:WaitForChild("MonsterService"))
+local CombatService = require(Services:WaitForChild("CombatService"))
+local WorldService = require(Services:WaitForChild("WorldService"))
+
+if DataService.Init then DataService.Init() end
+if EconomyService.Init then EconomyService.Init(DataService) end
+if ShopService.Init then ShopService.Init(DataService, EconomyService, PlotService, MonsterService) end
+if PlotService.Init then PlotService.Init(DataService, EconomyService, ShopService) end
+if ItemDropService.Init then ItemDropService.Init(DataService, EconomyService) end
+if MonsterService.Init then MonsterService.Init(DataService, EconomyService, PlotService, ItemDropService, ShopService) end
+if CombatService.Init then CombatService.Init(DataService) end
+if WorldService.Init then WorldService.Init(ShopService) end
+
+local GetPlayerDataFn = Network.GetFunction("GetPlayerData")
+GetPlayerDataFn.OnServerInvoke = function(player: Player)
+    return DataService.GetData(player)
+end
+
+local function teleportCharacterToPlot(player: Player, character: Model, plotModel: Model)
+    local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart?
+    local hrp = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+    if not plotBase or not hrp then return end
+
+    local spawnPos = (plotBase.CFrame * CFrame.new(0, 5, -10)).Position
+    local lookTarget = (plotBase.CFrame * CFrame.new(0, 5, 28)).Position
+    local targetCF = CFrame.lookAt(spawnPos, lookTarget)
+
+    character:PivotTo(targetCF)
+    task.wait(0.15)
+    if character.Parent and hrp.Parent then
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        character:PivotTo(targetCF)
+    end
+end
+
+local function onPlayerAdded(player: Player)
+    local function onCharacterAdded(character: Model)
+        if CombatService.GiveWeapon then
+            CombatService.GiveWeapon(player)
+        end
+        local assignedPlot = PlotService.GetPlayerPlot(player)
+        if assignedPlot then
+            teleportCharacterToPlot(player, character, assignedPlot)
+        end
+    end
+
+    player.CharacterAdded:Connect(onCharacterAdded)
+
+    if DataService.LoadData then
+        pcall(function() DataService.LoadData(player) end)
+    end
+
+    local plotModel = PlotService.AssignPlot(player)
+    if plotModel then
+        local plotSpawn = plotModel:FindFirstChild("PlotSpawn") :: SpawnLocation?
+        if plotSpawn then
+            player.RespawnLocation = plotSpawn
+        end
+
+        if MonsterService.InitPlotWave then
+            MonsterService.InitPlotWave(player, plotModel)
+        end
+
+        if player.Character then
+            task.spawn(teleportCharacterToPlot, player, player.Character, plotModel)
+            if CombatService.GiveWeapon then
+                CombatService.GiveWeapon(player)
+            end
+        end
+    end
+
+    if EconomyService.SyncClient then
+        EconomyService.SyncClient(player)
+    end
+end
+
+local function onPlayerRemoving(player: Player)
+    if MonsterService.ClearPlayerWave then MonsterService.ClearPlayerWave(player) end
+    if CombatService.ClearPlayer then CombatService.ClearPlayer(player) end
+    if EconomyService.ClearPlayer then EconomyService.ClearPlayer(player) end
+    if PlotService.ReleasePlot then PlotService.ReleasePlot(player) end
+    if DataService.ReleaseSession then DataService.ReleaseSession(player) end
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
+
+for _, existingPlayer in ipairs(Players:GetPlayers()) do
+    task.spawn(onPlayerAdded, existingPlayer)
+end
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\CombatService.luau ===n--!strict
+--[[
+    CombatService.luau
+    Equips players with the Holy Lantern weapon tool and validates all attacks server-side
+    (rate-limiting, distance checks, ownership checks, Core Level damage scaling).
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+
+local CombatService = {}
+
+local lastAttackTimes: { [number]: number } = {}
+local DataService: any
+
+local function createLanternTool(): Tool
+    local tool = Instance.new("Tool")
+    tool.Name = BalanceConfig.Weapon.Name
+    tool.RequiresHandle = true
+    tool.CanBeDropped = false
+    tool.ToolTip = "Shine holy light to purge encroaching monsters!"
+
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1.2, 1.8, 1.2)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(80, 65, 45)
+    handle.CanCollide = false
+    handle.Parent = tool
+
+    local glass = Instance.new("Part")
+    glass.Name = "LanternGlass"
+    glass.Size = Vector3.new(0.8, 1.2, 0.8)
+    glass.Material = Enum.Material.Neon
+    glass.Color = BalanceConfig.Weapon.LightColor
+    glass.CanCollide = false
+    glass.CFrame = handle.CFrame
+    glass.Parent = tool
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = handle
+    weld.Part1 = glass
+    weld.Parent = handle
+
+    local light = Instance.new("PointLight")
+    light.Color = BalanceConfig.Weapon.LightColor
+    light.Range = 20
+    light.Brightness = 3
+    light.Parent = glass
+
+    return tool
+end
+
+function CombatService.Init(dataServiceRef: any)
+    DataService = dataServiceRef
+
+    local attackEvent = Network.GetEvent("AttackRequest")
+    attackEvent.OnServerEvent:Connect(function(player: Player, targetMonster: any)
+        CombatService.HandleAttack(player, targetMonster)
+    end)
+end
+
+function CombatService.GiveWeapon(player: Player)
+    local weaponName = BalanceConfig.Weapon.Name
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    local character = player.Character
+
+    local hasInBackpack = backpack and backpack:FindFirstChild(weaponName)
+    local hasInCharacter = character and character:FindFirstChild(weaponName)
+
+    if not hasInBackpack and not hasInCharacter then
+        local lantern = createLanternTool()
+        if backpack then
+            lantern.Parent = backpack
+        elseif character then
+            lantern.Parent = character
+        end
+    end
+end
+
+function CombatService.HandleAttack(player: Player, targetMonster: any)
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return end
+
+    local equippedTool = character:FindFirstChild(BalanceConfig.Weapon.Name)
+    if not equippedTool then return end
+
+    local now = os.clock()
+    local lastTime = lastAttackTimes[player.UserId] or 0
+    if (now - lastTime) < (BalanceConfig.Weapon.Cooldown - 0.05) then
+        return
+    end
+    lastAttackTimes[player.UserId] = now
+
+    local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart
+    local handle = equippedTool:FindFirstChild("Handle") :: BasePart? or hrp
+
+    if typeof(targetMonster) ~= "Instance" or not targetMonster:IsA("Model") then
+        local forwardPos = hrp.Position + (hrp.CFrame.LookVector * BalanceConfig.Weapon.Range)
+        local combatVisual = Network.GetEvent("CombatVisual")
+        combatVisual:FireAllClients(handle.Position, forwardPos, false)
+        return
+    end
+
+    local ownerId = targetMonster:GetAttribute("OwnerUserId")
+    if ownerId ~= nil and ownerId ~= player.UserId then
+        return
+    end
+
+    local targetHum = targetMonster:FindFirstChildOfClass("Humanoid")
+    local targetRoot = targetMonster.PrimaryPart or targetMonster:FindFirstChild("Torso") :: BasePart?
+
+    if not targetHum or targetHum.Health <= 0 or not targetRoot then
+        return
+    end
+
+    local dist = (hrp.Position - targetRoot.Position).Magnitude
+    if dist > (BalanceConfig.Weapon.Range + 6) then
+        return
+    end
+
+    local coreLevel = 1
+    local data = DataService.GetData(player)
+    if data and data.CoreLevel then
+        coreLevel = data.CoreLevel
+    end
+
+    local multiplier = BalanceConfig.CoreLevels.GetWeaponDamageMultiplier(coreLevel)
+    local damage = math.floor(BalanceConfig.Weapon.BaseDamage * multiplier)
+
+    targetHum:TakeDamage(damage)
+
+    local combatVisual = Network.GetEvent("CombatVisual")
+    combatVisual:FireAllClients(handle.Position, targetRoot.Position, true)
+end
+
+function CombatService.ClearPlayer(player: Player)
+    lastAttackTimes[player.UserId] = nil
+end
+
+return CombatService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\DataService.luau ===n--!strict
+--[[
+    DataService.luau
+    Manages persistent player data via DataStoreService.
+    Includes autosave, backoff retries, and seamless mock fallback for Studio without API access.
+]]
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local DataService = {}
+
+local sessionData: { [number]: Types.PlayerData } = {}
+local dataStore: GlobalDataStore? = nil
+local isDataStoreAvailable = false
+
+local function initDataStore()
+    local success, ds = pcall(function()
+        return DataStoreService:GetDataStore(BalanceConfig.General.DataStoreKey)
+    end)
+
+    if success and ds then
+        dataStore = ds
+        local testSuccess = pcall(function()
+            ds:GetAsync("__ping__")
+        end)
+        isDataStoreAvailable = testSuccess
+        if not testSuccess then
+            warn("[DataService] DataStore API access is disabled (Studio mode). Using in-memory fallback.")
+        end
+    else
+        warn("[DataService] Could not initialize DataStore. Using in-memory fallback.")
+        isDataStoreAvailable = false
+    end
+end
+
+initDataStore()
+
+local function createDefaultData(): Types.PlayerData
+    return {
+        Coins = BalanceConfig.General.StarterCoins,
+        Souls = BalanceConfig.General.StarterSouls,
+        UnlockedUpgrades = {},
+        WaveNumber = 1,
+        MonstersDefeated = 0,
+        HasDoubleCoins = false,
+        HasVip = false,
+        CoreLevel = 1,
+        Inventory = {},
+        LastSaveTimestamp = os.time(),
+    }
+end
+
+function DataService.LoadData(player: Player): Types.PlayerData
+    local userId = player.UserId
+    local key = "Player_" .. tostring(userId)
+    local loadedData: Types.PlayerData? = nil
+
+    if isDataStoreAvailable and dataStore then
+        for attempt = 1, BalanceConfig.General.MaxSaveRetries do
+            local success, result = pcall(function()
+                return dataStore:GetAsync(key)
+            end)
+
+            if success then
+                if type(result) == "table" then
+                    loadedData = result :: Types.PlayerData
+                end
+                break
+            else
+                warn(string.format("[DataService] Load attempt %d failed for %s: %s", attempt, player.Name, tostring(result)))
+                task.wait(1 * attempt)
+            end
+        end
+    end
+
+    if not loadedData then
+        loadedData = createDefaultData()
+    else
+        local default = createDefaultData()
+        for k, v in pairs(default) do
+            if (loadedData :: any)[k] == nil then
+                (loadedData :: any)[k] = v
+            end
+        end
+        -- Reset pass flags so MonetizationService verifies live ownership on join
+        loadedData.HasDoubleCoins = false
+        loadedData.HasVip = false
+    end
+
+    sessionData[userId] = loadedData
+    return sessionData[userId]
+end
+
+function DataService.SaveData(player: Player): boolean
+    local userId = player.UserId
+    local data = sessionData[userId]
+    if not data then return false end
+
+    data.LastSaveTimestamp = os.time()
+
+    if not isDataStoreAvailable or not dataStore then
+        return true
+    end
+
+    local key = "Player_" .. tostring(userId)
+    for attempt = 1, BalanceConfig.General.MaxSaveRetries do
+        local success, err = pcall(function()
+            dataStore:SetAsync(key, data)
+        end)
+
+        if success then
+            return true
+        else
+            warn(string.format("[DataService] Save attempt %d failed for %s: %s", attempt, player.Name, tostring(err)))
+            task.wait(1.5 * attempt)
+        end
+    end
+
+    return false
+end
+
+function DataService.GetData(player: Player): Types.PlayerData?
+    return sessionData[player.UserId]
+end
+
+function DataService.UpdateData(player: Player, updater: (data: Types.PlayerData) -> ()): Types.PlayerData?
+    local data = sessionData[player.UserId]
+    if data then
+        updater(data)
+        return data
+    end
+    return nil
+end
+
+function DataService.ReleaseSession(player: Player)
+    DataService.SaveData(player)
+    sessionData[player.UserId] = nil
+end
+
+function DataService.StartAutosave()
+    task.spawn(function()
+        while true do
+            task.wait(BalanceConfig.General.AutosaveInterval)
+            for _, player in ipairs(Players:GetPlayers()) do
+                DataService.SaveData(player)
+            end
+        end
+    end)
+end
+
+game:BindToClose(function()
+    print("[DataService] Server closing, saving all active players...")
+    for _, player in ipairs(Players:GetPlayers()) do
+        DataService.SaveData(player)
+    end
+    print("[DataService] All player data flushed.")
+end)
+
+return DataService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\EconomyService.luau ===n--!strict
+--[[
+    EconomyService.luau
+    Authoritative server-side management for Coins, Souls, and plot Vault income.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local MonetizationConfig = require(ReplicatedStorage.Config.MonetizationConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local EconomyService = {}
+
+-- In-memory pending vault storage for each player (coins accumulated by visitors)
+local playerVaults: { [number]: number } = {}
+
+-- References injected by bootstrap or lazy-required
+local DataService: any
+
+local function getDataService(): any
+    if not DataService then
+        DataService = require(game:GetService("ServerScriptService").Services.DataService)
+    end
+    return DataService
+end
+
+function EconomyService.Init(dataServiceRef: any)
+    DataService = dataServiceRef
+
+    local requestCollectFn = Network.GetFunction("RequestCollectVault")
+    requestCollectFn.OnServerInvoke = function(player: Player)
+        local collected = EconomyService.CollectVault(player)
+        return true, collected
+    end
+end
+
+function EconomyService.GetVaultBalance(player: Player): number
+    return playerVaults[player.UserId] or 0
+end
+
+function EconomyService.DepositToVault(player: Player, rawAmount: number)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if not data then return end
+
+    local multiplier = 1.0
+    if data.HasDoubleCoins then
+        multiplier = MonetizationConfig.Perks.DoubleCoinsMultiplier
+    end
+
+    local finalAmount = math.floor(rawAmount * multiplier)
+    playerVaults[player.UserId] = (playerVaults[player.UserId] or 0) + finalAmount
+end
+
+function EconomyService.CollectVault(player: Player): number
+    local pending = playerVaults[player.UserId] or 0
+    if pending <= 0 then return 0 end
+
+    playerVaults[player.UserId] = 0
+    EconomyService.AddCoins(player, pending, false)
+
+    local notifEvent = Network.GetEvent("Notification")
+    notifEvent:FireClient(player, string.format("Collected +%d Coins from Manor Vault! ðŸª™", pending), Color3.fromRGB(255, 215, 0))
+
+    return pending
+end
+
+function EconomyService.AddCoins(player: Player, amount: number, applyMultipliers: boolean?): number
+    if amount <= 0 then return 0 end
+    local finalAmount = amount
+
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if not data then return 0 end
+
+    if applyMultipliers and data.HasDoubleCoins then
+        finalAmount = math.floor(amount * MonetizationConfig.Perks.DoubleCoinsMultiplier)
+    end
+
+    ds.UpdateData(player, function(d: Types.PlayerData)
+        d.Coins += finalAmount
+    end)
+
+    EconomyService.SyncClient(player)
+    return finalAmount
+end
+
+function EconomyService.AddSouls(player: Player, amount: number): number
+    if amount <= 0 then return 0 end
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if not data then return 0 end
+
+    ds.UpdateData(player, function(d: Types.PlayerData)
+        d.Souls += amount
+    end)
+
+    EconomyService.SyncClient(player)
+    return amount
+end
+
+function EconomyService.DeductCoins(player: Player, amount: number): boolean
+    if amount <= 0 then return true end
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if not data or data.Coins < amount then return false end
+
+    ds.UpdateData(player, function(d: Types.PlayerData)
+        d.Coins -= amount
+    end)
+
+    EconomyService.SyncClient(player)
+    return true
+end
+
+function EconomyService.DeductSouls(player: Player, amount: number): boolean
+    if amount <= 0 then return true end
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if not data or data.Souls < amount then return false end
+
+    ds.UpdateData(player, function(d: Types.PlayerData)
+        d.Souls -= amount
+    end)
+
+    EconomyService.SyncClient(player)
+    return true
+end
+
+function EconomyService.SyncClient(player: Player)
+    local ds = getDataService()
+    local data = ds and ds.GetData(player)
+    if data then
+        local updateEvent = Network.GetEvent("PlayerDataUpdated")
+        updateEvent:FireClient(player, data)
+    end
+end
+
+function EconomyService.ClearPlayer(player: Player)
+    playerVaults[player.UserId] = nil
+end
+
+return EconomyService
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\ItemDropService.luau ===n--!strict
+--[[
+    ItemDropService.luau
+    Manages physical loot and coins dropped by monsters on death.
+    - Stays firmly grounded on the arena floor when idle (no floating).
+    - Smoothly magnetizes towards the plot owner when within MAGNET_RANGE studs.
+]]
+
+local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local ItemDropService = {}
+
+local MAGNET_RANGE = 16       -- Jarak deteksi magnet (studs)
+local MAGNET_SPEED = 42       -- Kecepatan tarikan magnet (studs/detik)
+local COLLECT_DISTANCE = 3.2  -- Jarak otomatis terambil saat mendekati karakter
+
+local DataService: any
+local EconomyService: any
+
+local function getGroundedPosition(deathPosition: Vector3, plotModel: Model, halfHeight: number): Vector3
+    local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart?
+    if plotBase then
+        local floorTopY = plotBase.Position.Y + (plotBase.Size.Y * 0.5)
+        return Vector3.new(deathPosition.X, floorTopY + halfHeight, deathPosition.Z)
+    end
+    return Vector3.new(deathPosition.X, 2 + halfHeight, deathPosition.Z)
+end
+
+local function attachMagnetBehavior(
+    part: BasePart,
+    ownerPlayer: Player,
+    isCoin: boolean,
+    onCollect: () -> ()
+)
+    local collected = false
+    local spinAngle = 0
+    local currentSpeed = MAGNET_SPEED * 0.5
+
+    local function triggerCollect()
+        if collected then return end
+        collected = true
+        onCollect()
+
+        local tweenOut = TweenService:Create(part, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = Vector3.zero,
+            Transparency = 1,
+        })
+        tweenOut:Play()
+        tweenOut.Completed:Connect(function()
+            if part.Parent then
+                part:Destroy()
+            end
+        end)
+    end
+
+    -- Tetap dukung sentuhan langsung (Touched)
+    local touchConn: RBXScriptConnection? = nil
+    touchConn = part.Touched:Connect(function(hit)
+        if collected then return end
+        local touchingPlayer = Players:GetPlayerFromCharacter(hit.Parent)
+        if touchingPlayer and touchingPlayer == ownerPlayer then
+            if touchConn then
+                touchConn:Disconnect()
+                touchConn = nil
+            end
+            triggerCollect()
+        end
+    end)
+
+    -- Loop Magnet berbasis jarak pemain
+    local heartbeatConn: RBXScriptConnection? = nil
+    heartbeatConn = RunService.Heartbeat:Connect(function(dt: number)
+        if collected or not part.Parent then
+            if heartbeatConn then
+                heartbeatConn:Disconnect()
+                heartbeatConn = nil
+            end
+            if touchConn then
+                touchConn:Disconnect()
+                touchConn = nil
+            end
+            return
+        end
+
+        spinAngle += dt * 2.5
+
+        local character = ownerPlayer.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+        local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+        if hrp and hum and hum.Health > 0 then
+            local toPlayer = hrp.Position - part.Position
+            local distance = toPlayer.Magnitude
+
+            if distance <= COLLECT_DISTANCE then
+                if heartbeatConn then
+                    heartbeatConn:Disconnect()
+                    heartbeatConn = nil
+                end
+                if touchConn then
+                    touchConn:Disconnect()
+                    touchConn = nil
+                end
+                triggerCollect()
+                return
+            elseif distance <= MAGNET_RANGE then
+                -- Akselerasi tarikan magnet makin cepat saat makin dekat
+                local proximityFactor = 1 + ((MAGNET_RANGE - distance) / MAGNET_RANGE)
+                currentSpeed = math.min(MAGNET_SPEED * 1.8, currentSpeed + (dt * 75))
+                local step = math.min(distance, currentSpeed * proximityFactor * dt)
+                local nextPos = part.Position + (toPlayer.Unit * step)
+
+                if isCoin then
+                    part.CFrame = CFrame.new(nextPos) * CFrame.Angles(0, spinAngle, math.rad(90))
+                else
+                    part.CFrame = CFrame.new(nextPos) * CFrame.Angles(0, spinAngle, 0)
+                end
+                return
+            end
+        end
+
+        -- Di luar radius magnet: tetap diam menempel di tanah & berputar pelan
+        currentSpeed = MAGNET_SPEED * 0.5
+        if isCoin then
+            part.CFrame = CFrame.new(part.Position) * CFrame.Angles(0, spinAngle, math.rad(90))
+        else
+            part.CFrame = CFrame.new(part.Position) * CFrame.Angles(0, spinAngle, 0)
+        end
+    end)
+end
+
+function ItemDropService.Init(dataServiceRef: any, economyServiceRef: any)
+    DataService = dataServiceRef
+    EconomyService = economyServiceRef
+end
+
+function ItemDropService.SpawnDrop(monsterType: string, deathPosition: Vector3, ownerPlayer: Player, plotModel: Model)
+    local dropConfig = BalanceConfig.MonsterDrops[monsterType]
+    if not dropConfig then return end
+
+    local dropsFolder = plotModel:FindFirstChild("ItemDrops")
+    if not dropsFolder then
+        dropsFolder = Instance.new("Folder")
+        dropsFolder.Name = "ItemDrops"
+        dropsFolder.Parent = plotModel
+    end
+
+    local groundedPos = getGroundedPosition(deathPosition, plotModel, 0.75)
+
+    local dropPart = Instance.new("Part")
+    dropPart.Name = "Drop_" .. dropConfig.ItemId
+    dropPart.Size = Vector3.new(1.5, 1.5, 1.5)
+    dropPart.CFrame = CFrame.new(groundedPos)
+    dropPart.Anchored = true
+    dropPart.CanCollide = false
+    dropPart.Material = Enum.Material.Neon
+    dropPart.Color = dropConfig.Color
+    dropPart.Shape = Enum.PartType.Block
+    dropPart.Parent = dropsFolder
+
+    local light = Instance.new("PointLight")
+    light.Color = dropConfig.Color
+    light.Range = 11
+    light.Brightness = 2.2
+    light.Parent = dropPart
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "DropGui"
+    bb.Size = UDim2.new(4.5, 0, 1.5, 0)
+    bb.StudsOffset = Vector3.new(0, 1.8, 0)
+    bb.AlwaysOnTop = true
+    bb.MaxDistance = 60
+    bb.Parent = dropPart
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = string.format("âœ¨ %s\n(%d ðŸª™ at Shop)", dropConfig.DisplayName, dropConfig.SellPrice)
+    label.TextColor3 = dropConfig.Color
+    label.TextStrokeTransparency = 0
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamBold
+    label.Parent = bb
+
+    attachMagnetBehavior(dropPart, ownerPlayer, false, function()
+        if not DataService then
+            DataService = require(game:GetService("ServerScriptService").Services.DataService)
+        end
+        if not EconomyService then
+            EconomyService = require(game:GetService("ServerScriptService").Services.EconomyService)
+        end
+
+        DataService.UpdateData(ownerPlayer, function(d: Types.PlayerData)
+            if not d.Inventory then
+                d.Inventory = {}
+            end
+            d.Inventory[dropConfig.ItemId] = (d.Inventory[dropConfig.ItemId] or 0) + 1
+        end)
+
+        EconomyService.SyncClient(ownerPlayer)
+
+        local notif = Network.GetEvent("Notification")
+        notif:FireClient(ownerPlayer, string.format("ðŸ“¦ Picked up %s! (Sell at Shop)", dropConfig.DisplayName), dropConfig.Color)
+    end)
+
+    Debris:AddItem(dropPart, 90)
+end
+
+function ItemDropService.SpawnCoinDrop(coinAmount: number, deathPosition: Vector3, ownerPlayer: Player, plotModel: Model)
+    if coinAmount <= 0 then return end
+
+    local dropsFolder = plotModel:FindFirstChild("ItemDrops")
+    if not dropsFolder then
+        dropsFolder = Instance.new("Folder")
+        dropsFolder.Name = "ItemDrops"
+        dropsFolder.Parent = plotModel
+    end
+
+    local groundedPos = getGroundedPosition(deathPosition, plotModel, 0.22)
+
+    local coinPart = Instance.new("Part")
+    coinPart.Name = "CoinDrop"
+    coinPart.Size = Vector3.new(0.4, 1.7, 1.7)
+    coinPart.Anchored = true
+    coinPart.CanCollide = false
+    coinPart.Material = Enum.Material.Neon
+    coinPart.Color = Color3.fromRGB(255, 215, 0)
+    coinPart.Shape = Enum.PartType.Cylinder
+    coinPart.CFrame = CFrame.new(groundedPos) * CFrame.Angles(0, 0, math.rad(90))
+    coinPart.Parent = dropsFolder
+
+    local goldLight = Instance.new("PointLight")
+    goldLight.Color = Color3.fromRGB(255, 220, 60)
+    goldLight.Range = 12
+    goldLight.Brightness = 2.2
+    goldLight.Parent = coinPart
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "CoinGui"
+    bb.Size = UDim2.new(4, 0, 1.4, 0)
+    bb.StudsOffset = Vector3.new(0, 1.6, 0)
+    bb.AlwaysOnTop = true
+    bb.MaxDistance = 60
+    bb.Parent = coinPart
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = string.format("ðŸª™ +%d Koin!", coinAmount)
+    label.TextColor3 = Color3.fromRGB(255, 225, 70)
+    label.TextStrokeTransparency = 0
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamBold
+    label.Parent = bb
+
+    attachMagnetBehavior(coinPart, ownerPlayer, true, function()
+        if not EconomyService then
+            EconomyService = require(game:GetService("ServerScriptService").Services.EconomyService)
+        end
+        if EconomyService and EconomyService.AddCoins then
+            EconomyService.AddCoins(ownerPlayer, coinAmount, true)
+        end
+
+        local notif = Network.GetEvent("Notification")
+        if notif then
+            notif:FireClient(ownerPlayer, string.format("ðŸª™ +%d Koin diambil dari monster!", coinAmount), Color3.fromRGB(255, 220, 50))
+        end
+    end)
+
+    Debris:AddItem(coinPart, 90)
+end
+
+return ItemDropService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\MonetizationService.luau ===n--!strict
+--[[
+    MonetizationService.luau
+    Handles GamePass ownership checks, developer product receipts,
+    and grants monetization perks (2x Coins, VIP Plot, Souls packs).
+]]
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local MonetizationConfig = require(ReplicatedStorage.Config.MonetizationConfig)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local MonetizationService = {}
+
+local DataService: any
+local EconomyService: any
+
+function MonetizationService.Init(dataServiceRef: any, economyServiceRef: any)
+    DataService = dataServiceRef
+    EconomyService = economyServiceRef
+
+    -- ProcessReceipt callback for Developer Products
+    MarketplaceService.ProcessReceipt = function(receiptInfo)
+        local player = Players:GetPlayerByUserId(receiptInfo.PlayerId)
+        if not player then
+            return Enum.ProductPurchaseDecision.NotProcessedYet
+        end
+
+        local productId = receiptInfo.ProductId
+
+        if productId == MonetizationConfig.DevProducts.Souls50 and productId ~= 0 then
+            EconomyService.AddSouls(player, 50)
+            return Enum.ProductPurchaseDecision.PurchaseGranted
+        elseif productId == MonetizationConfig.DevProducts.Souls200 and productId ~= 0 then
+            EconomyService.AddSouls(player, 200)
+            return Enum.ProductPurchaseDecision.PurchaseGranted
+        end
+
+        return Enum.ProductPurchaseDecision.PurchaseGranted
+    end
+
+    -- Gamepass purchase listener
+    MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, passId, wasPurchased)
+        if wasPurchased then
+            if passId == MonetizationConfig.Gamepasses.DoubleCoins and passId ~= 0 then
+                DataService.UpdateData(player, function(d: Types.PlayerData)
+                    d.HasDoubleCoins = true
+                end)
+                EconomyService.SyncClient(player)
+            elseif passId == MonetizationConfig.Gamepasses.VipPlot and passId ~= 0 then
+                DataService.UpdateData(player, function(d: Types.PlayerData)
+                    d.HasVip = true
+                end)
+                EconomyService.SyncClient(player)
+            end
+        end
+    end)
+end
+
+function MonetizationService.CheckPlayerPasses(player: Player)
+    local data = DataService.GetData(player)
+    if not data then return end
+
+    -- Check 2x Coins
+    local doublePassId = MonetizationConfig.Gamepasses.DoubleCoins
+    if doublePassId and doublePassId > 0 then
+        local success, owns = pcall(function()
+            return MarketplaceService:UserOwnsGamePassAsync(player.UserId, doublePassId)
+        end)
+        if success and owns then
+            data.HasDoubleCoins = true
+        end
+    end
+
+    -- Check VIP Plot
+    local vipPassId = MonetizationConfig.Gamepasses.VipPlot
+    if vipPassId and vipPassId > 0 then
+        local success, owns = pcall(function()
+            return MarketplaceService:UserOwnsGamePassAsync(player.UserId, vipPassId)
+        end)
+        if success and owns then
+            data.HasVip = true
+        end
+    end
+end
+
+return MonetizationService
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\MonsterService.luau ===n--!strict
+--[[
+    MonsterService.luau
+    Manages monster spawning, wave stat scaling, anti-stuck navigation towards the Manor Core,
+    progressive wave coin rewards, sculpted 3D evolving Manor Core architecture (Lv. 1 - 20),
+    Core destruction/repair/upgrade animations, and loot drops.
+]]
+
+local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local MonsterService = {}
+
+type PlotWaveState = {
+    WaveNumber: number,
+    Status: Types.WaveStatus,
+    TimeRemaining: number,
+    ActiveMonsters: { Model },
+    MonstersRemaining: number,
+    CoreHealth: number,
+    CoreMaxHealth: number,
+    LastDamageTime: number,
+    LastRegenTick: number,
+}
+
+local plotWaveStates: { [Model]: PlotWaveState } = {}
+local monsterOwnerMap: { [Model]: Player } = {}
+
+local DataService: any
+local EconomyService: any
+local PlotService: any
+local ItemDropService: any
+local ShopService: any
+
+local function ensureServices()
+    local sss = game:GetService("ServerScriptService")
+    local services = sss:FindFirstChild("Services") or sss
+    if not DataService then DataService = require(services:WaitForChild("DataService")) end
+    if not EconomyService then EconomyService = require(services:WaitForChild("EconomyService")) end
+    if not PlotService then PlotService = require(services:WaitForChild("PlotService")) end
+    if not ItemDropService then ItemDropService = require(services:WaitForChild("ItemDropService")) end
+    if not ShopService then ShopService = require(services:WaitForChild("ShopService")) end
+end
+
+local function createSpatialSound(parent: Instance, name: string, soundId: string, volume: number, pitch: number): Sound
+    local sound = Instance.new("Sound")
+    sound.Name = name
+    sound.SoundId = soundId
+    sound.Volume = volume
+    sound.PlaybackSpeed = pitch
+    sound.RollOffMode = Enum.RollOffMode.InverseTapered
+    sound.RollOffMinDistance = 12
+    sound.RollOffMaxDistance = 90
+    sound.Parent = parent
+    return sound
+end
+
+local function getCoreTierVisuals(level: number): {
+    primaryColor: Color3,
+    secondaryColor: Color3,
+    accentColor: Color3,
+    stoneColor: Color3,
+    tierName: string,
+}
+    local lvl = math.clamp(level, 1, 20)
+    if lvl >= 20 then
+        return {
+            primaryColor = Color3.fromRGB(255, 248, 205),
+            secondaryColor = Color3.fromRGB(255, 205, 70),
+            accentColor = Color3.fromRGB(160, 240, 255),
+            stoneColor = Color3.fromRGB(225, 220, 235),
+            tierName = "Astral Cathedral",
+        }
+    elseif lvl >= 15 then
+        return {
+            primaryColor = Color3.fromRGB(245, 50, 95),
+            secondaryColor = Color3.fromRGB(255, 155, 60),
+            accentColor = Color3.fromRGB(255, 215, 90),
+            stoneColor = Color3.fromRGB(36, 26, 38),
+            tierName = "Crimson Sovereign",
+        }
+    elseif lvl >= 10 then
+        return {
+            primaryColor = Color3.fromRGB(70, 225, 255),
+            secondaryColor = Color3.fromRGB(145, 120, 255),
+            accentColor = Color3.fromRGB(255, 220, 100),
+            stoneColor = Color3.fromRGB(48, 54, 72),
+            tierName = "Celestial Sanctum",
+        }
+    elseif lvl >= 5 then
+        return {
+            primaryColor = Color3.fromRGB(105, 165, 255),
+            secondaryColor = Color3.fromRGB(130, 245, 220),
+            accentColor = Color3.fromRGB(190, 215, 255),
+            stoneColor = Color3.fromRGB(55, 58, 74),
+            tierName = "Arcane Spire",
+        }
+    else
+        return {
+            primaryColor = Color3.fromRGB(185, 85, 255),
+            secondaryColor = Color3.fromRGB(235, 145, 255),
+            accentColor = Color3.fromRGB(140, 215, 255),
+            stoneColor = Color3.fromRGB(58, 52, 68),
+            tierName = "Awakened Relic",
+        }
+    end
+end
+
+local function getIntactCoreCFrame(plotModel: Model, level: number): (CFrame, Vector3)
+    local pedestal = plotModel:FindFirstChild("CorePedestal") :: BasePart?
+    local lvl = math.clamp(level, 1, 20)
+    local scaleBoost = (lvl - 1) * 0.11
+    local targetSize = Vector3.new(3.6 + scaleBoost, 5.2 + (scaleBoost * 1.4), 3.6 + scaleBoost)
+    if pedestal then
+        -- Melayang anggun di atas altar bundar bertingkat
+        local cf = pedestal.CFrame * CFrame.new(0, (pedestal.Size.Y * 0.5) + 4.8 + (scaleBoost * 0.7), 0)
+            * CFrame.Angles(math.rad(16), math.rad(45), math.rad(16))
+        return cf, targetSize
+    end
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    return (if core then core.CFrame else CFrame.new()), targetSize
+end
+
+-- Helper membuat ujung runcing Gotik 4-sisi (Spire Tip) dari WedgePart
+local function buildGothicSpireTip(parent: Instance, centerCF: CFrame, baseWidth: number, height: number, color: Color3, material: Enum.Material)
+    local halfW = baseWidth * 0.5
+    for i = 0, 3 do
+        local rot = CFrame.Angles(0, math.rad(i * 90), 0)
+        local wedge = Instance.new("WedgePart")
+        wedge.Name = "SpireWedge"
+        wedge.Size = Vector3.new(baseWidth, height, halfW)
+        wedge.CFrame = centerCF * rot * CFrame.new(0, height * 0.5, halfW * 0.5)
+        wedge.Color = color
+        wedge.Material = material
+        wedge.Anchored = true
+        wedge.CanCollide = false
+        wedge.Parent = parent
+    end
+end
+
+-- Membangun Arsitektur 3D Organik & Gotik untuk Manor Core (Lv. 1 - 20)
+function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    local pedestal = plotModel:FindFirstChild("CorePedestal") :: BasePart?
+    if not core or not pedestal then return end
+
+    local lvl = math.clamp(level, 1, 20)
+    local theme = getCoreTierVisuals(lvl)
+    local intactCF, intactSize = getIntactCoreCFrame(plotModel, lvl)
+
+    local oldDecor = plotModel:FindFirstChild("CoreDecorations")
+    if oldDecor then
+        oldDecor:Destroy()
+    end
+
+    local decorFolder = Instance.new("Folder")
+    decorFolder.Name = "CoreDecorations"
+    decorFolder.Parent = plotModel
+
+    -- Sembunyikan bentuk kotak kasar dari CorePedestal asli (tetap jaga collidernya) & ganti dengan Altar Bundar Bertingkat
+    pedestal.Transparency = 1
+    local pedBasePos = Vector3.new(pedestal.Position.X, pedestal.Position.Y - (pedestal.Size.Y * 0.5), pedestal.Position.Z)
+
+    -- 1. Altar Melingkar 3 Undakan (Circular Tiered Dais)
+    local daisTiers = {
+        { radius = 15.5 + (lvl * 0.12), height = 0.7, color = theme.stoneColor },
+        { radius = 12.2 + (lvl * 0.10), height = 0.7, color = theme.stoneColor },
+        { radius = 9.0 + (lvl * 0.08), height = 0.8, color = theme.stoneColor },
+    }
+    local currentY = pedBasePos.Y
+    for idx, tier in ipairs(daisTiers) do
+        local stepCyl = Instance.new("Part")
+        stepCyl.Name = "AltarStep_" .. idx
+        stepCyl.Shape = Enum.PartType.Cylinder
+        stepCyl.Size = Vector3.new(tier.height, tier.radius * 2, tier.radius * 2)
+        stepCyl.CFrame = CFrame.new(pedBasePos.X, currentY + (tier.height * 0.5), pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+        stepCyl.Material = if lvl >= 10 then Enum.Material.Marble else Enum.Material.Slate
+        stepCyl.Color = tier.color
+        stepCyl.Anchored = true
+        stepCyl.CanCollide = true
+        stepCyl.Parent = decorFolder
+
+        -- Lis cincin bercahaya di tepi undakan altar
+        local trimRing = Instance.new("Part")
+        trimRing.Name = "AltarTrim_" .. idx
+        trimRing.Shape = Enum.PartType.Cylinder
+        trimRing.Size = Vector3.new(0.18, (tier.radius * 2) + 0.35, (tier.radius * 2) + 0.35)
+        trimRing.CFrame = CFrame.new(pedBasePos.X, currentY + tier.height, pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+        trimRing.Material = Enum.Material.Neon
+        trimRing.Color = if idx == 3 then theme.primaryColor else theme.secondaryColor
+        trimRing.Transparency = if lvl >= 5 then 0.25 else 0.55
+        trimRing.Anchored = true
+        trimRing.CanCollide = false
+        trimRing.Parent = decorFolder
+
+        currentY += tier.height
+    end
+
+    -- Dudukan Mangkuk Energi (Chalice Pedestal) di tengah altar
+    local chaliceBase = Instance.new("Part")
+    chaliceBase.Name = "ChalicePedestal"
+    chaliceBase.Shape = Enum.PartType.Cylinder
+    chaliceBase.Size = Vector3.new(1.6, 5.2, 5.2)
+    chaliceBase.CFrame = CFrame.new(pedBasePos.X, currentY + 0.8, pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+    chaliceBase.Material = Enum.Material.Marble
+    chaliceBase.Color = theme.stoneColor
+    chaliceBase.Anchored = true
+    chaliceBase.CanCollide = true
+    chaliceBase.Parent = decorFolder
+
+    local chaliceBowl = Instance.new("Part")
+    chaliceBowl.Name = "ChaliceBowl"
+    chaliceBowl.Shape = Enum.PartType.Ball
+    chaliceBowl.Size = Vector3.new(4.6, 2.2, 4.6)
+    chaliceBowl.CFrame = CFrame.new(pedBasePos.X, currentY + 1.6, pedBasePos.Z)
+    chaliceBowl.Material = Enum.Material.Neon
+    chaliceBowl.Color = theme.secondaryColor
+    chaliceBowl.Transparency = 0.2
+    chaliceBowl.Anchored = true
+    chaliceBowl.CanCollide = false
+    chaliceBowl.Parent = decorFolder
+
+    -- 2. Kristal Inti Berfaset (Faceted Diamond Crystal Core)
+    core.Material = Enum.Material.Neon
+    core.Color = theme.primaryColor
+    core.Transparency = 0.15
+    core.Size = intactSize
+    core.CFrame = intactCF
+
+    local corePos = intactCF.Position
+
+    -- Bola Inti Energi (Inner Soul Sphere) di dalam kristal
+    local innerSphere = Instance.new("Part")
+    innerSphere.Name = "InnerEnergySphere"
+    innerSphere.Shape = Enum.PartType.Ball
+    innerSphere.Size = Vector3.new(intactSize.X * 0.72, intactSize.X * 0.72, intactSize.X * 0.72)
+    innerSphere.CFrame = CFrame.new(corePos)
+    innerSphere.Material = Enum.Material.Neon
+    innerSphere.Color = Color3.fromRGB(255, 255, 255)
+    innerSphere.Anchored = true
+    innerSphere.CanCollide = false
+    innerSphere.Parent = decorFolder
+
+    -- Kerucut Kristal Atas & Bawah (Membentuk siluet Berlian Runcing 3D, bukan kotak)
+    local spireConeH = 2.6 + (lvl * 0.08)
+    local spireBaseW = intactSize.X * 0.85
+    buildGothicSpireTip(
+        decorFolder,
+        CFrame.new(corePos + Vector3.new(0, intactSize.Y * 0.42, 0)),
+        spireBaseW,
+        spireConeH,
+        theme.secondaryColor,
+        Enum.Material.Neon
+    )
+    buildGothicSpireTip(
+        decorFolder,
+        CFrame.new(corePos - Vector3.new(0, intactSize.Y * 0.42, 0)) * CFrame.Angles(math.rad(180), 0, 0),
+        spireBaseW,
+        spireConeH * 0.85,
+        theme.secondaryColor,
+        Enum.Material.Neon
+    )
+
+    local coreLight = core:FindFirstChildOfClass("PointLight")
+    if coreLight then
+        coreLight.Color = theme.primaryColor
+        coreLight.Range = 28 + (lvl * 1.5)
+        coreLight.Brightness = 2.4 + (lvl * 0.08)
+    end
+
+    -- 3. Pilar Menara Gotik Melingkar (4 Pilar di Lv.1-9, berkembang jadi 8 Pilar di Lv.10+)
+    local pillarCount = if lvl >= 10 then 8 else 4
+    local ringRadius = 11.2 + (lvl * 0.08)
+    local pillarHeight = 4.2 + (lvl * 0.35)
+
+    for i = 1, pillarCount do
+        local angle = ((i - 1) / pillarCount) * math.pi * 2 + math.rad(45)
+        local px = pedBasePos.X + math.cos(angle) * ringRadius
+        local pz = pedBasePos.Z + math.sin(angle) * ringRadius
+        local basePillarY = pedBasePos.Y + 1.4
+
+        -- Batang pilar silinder halus (bukan balok kotak)
+        local column = Instance.new("Part")
+        column.Name = "GothicColumn_" .. i
+        column.Shape = Enum.PartType.Cylinder
+        column.Size = Vector3.new(pillarHeight, 1.35 + (lvl * 0.02), 1.35 + (lvl * 0.02))
+        column.CFrame = CFrame.new(px, basePillarY + (pillarHeight * 0.5), pz) * CFrame.Angles(0, 0, math.rad(90))
+        column.Material = if lvl >= 10 then Enum.Material.Marble else Enum.Material.Slate
+        column.Color = theme.stoneColor
+        column.Anchored = true
+        column.CanCollide = true
+        column.Parent = decorFolder
+
+        -- Cincin leher pilar
+        local collar = Instance.new("Part")
+        collar.Name = "ColumnCollar_" .. i
+        collar.Shape = Enum.PartType.Cylinder
+        collar.Size = Vector3.new(0.45, 1.85, 1.85)
+        collar.CFrame = CFrame.new(px, basePillarY + pillarHeight, pz) * CFrame.Angles(0, 0, math.rad(90))
+        collar.Material = Enum.Material.Neon
+        collar.Color = theme.accentColor
+        collar.Anchored = true
+        collar.CanCollide = false
+        collar.Parent = decorFolder
+
+        -- Atap runcing Gotik pada setiap pilar (Lv. 2+)
+        if lvl >= 2 then
+            buildGothicSpireTip(
+                decorFolder,
+                CFrame.new(px, basePillarY + pillarHeight + 0.2, pz) * CFrame.Angles(0, angle, 0),
+                1.6,
+                1.8 + (lvl * 0.06),
+                theme.stoneColor,
+                Enum.Material.Slate
+            )
+        end
+
+        -- Lentera Permata Melayang di puncak pilar (Lv. 3+)
+        if lvl >= 3 then
+            local orbY = basePillarY + pillarHeight + 2.4 + (lvl * 0.06)
+            local orb = Instance.new("Part")
+            orb.Name = "PillarLanternOrb_" .. i
+            orb.Shape = Enum.PartType.Ball
+            orb.Size = Vector3.new(1.0 + (lvl * 0.03), 1.0 + (lvl * 0.03), 1.0 + (lvl * 0.03))
+            orb.CFrame = CFrame.new(px, orbY, pz)
+            orb.Material = Enum.Material.Neon
+            orb.Color = if i % 2 == 0 then theme.primaryColor else theme.secondaryColor
+            orb.Anchored = true
+            orb.CanCollide = false
+            orb.Parent = decorFolder
+
+            TweenService:Create(orb, TweenInfo.new(1.8 + (i * 0.15), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+                CFrame = CFrame.new(px, orbY + 0.65, pz),
+            }):Play()
+        end
+    end
+
+    -- 4. Cincin Orbital 3D & Batu Rune Mengorbit Kristal Inti
+    local ringCount = if lvl >= 20 then 3 elseif lvl >= 10 then 2 elseif lvl >= 5 then 1 else 0
+    for r = 1, ringCount do
+        local ringDiameter = intactSize.X + 5.2 + (r * 2.4)
+        local ring = Instance.new("Part")
+        ring.Name = "OrbitalRing_" .. r
+        ring.Shape = Enum.PartType.Cylinder
+        ring.Size = Vector3.new(0.22, ringDiameter, ringDiameter)
+        ring.Material = Enum.Material.Neon
+        ring.Color = if r == 1 then theme.secondaryColor elseif r == 2 then theme.accentColor else theme.primaryColor
+        ring.Transparency = 0.25
+        ring.Anchored = true
+        ring.CanCollide = false
+
+        local tiltX = if r == 1 then math.rad(18) elseif r == 2 then math.rad(-26) else math.rad(38)
+        local tiltY = math.rad(r * 55)
+        ring.CFrame = CFrame.new(corePos) * CFrame.Angles(tiltX, tiltY, math.rad(90))
+        ring.Parent = decorFolder
+
+        TweenService:Create(ring, TweenInfo.new(4.5 + r, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+            CFrame = CFrame.new(corePos) * CFrame.Angles(tiltX, tiltY + math.pi, math.rad(90)),
+        }):Play()
+    end
+
+    -- 5. Mahkota Halo Melayang di Puncak Kristal (Lv. 7+)
+    if lvl >= 7 then
+        local crownY = corePos.Y + (intactSize.Y * 0.5) + spireConeH + 1.1
+        local halo = Instance.new("Part")
+        halo.Name = "CelestialHalo"
+        halo.Shape = Enum.PartType.Cylinder
+        halo.Size = Vector3.new(0.25, 3.6 + (lvl * 0.12), 3.6 + (lvl * 0.12))
+        halo.CFrame = CFrame.new(corePos.X, crownY, corePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+        halo.Material = Enum.Material.Neon
+        halo.Color = theme.accentColor
+        halo.Anchored = true
+        halo.CanCollide = false
+        halo.Parent = decorFolder
+
+        TweenService:Create(halo, TweenInfo.new(2.0, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+            CFrame = CFrame.new(corePos.X, crownY + 0.7, corePos.Z) * CFrame.Angles(0, 0, math.rad(90)),
+        }):Play()
+    end
+
+    -- 6. Sayap Perisai Kristal Melengkung / Curved Aegis Wings (Lv. 14+)
+    if lvl >= 14 then
+        local wingCount = if lvl >= 18 then 6 else 4
+        local wingRadius = (intactSize.X * 0.5) + 3.8
+        for w = 1, wingCount do
+            local wAngle = ((w - 1) / wingCount) * math.pi * 2
+            local wx = corePos.X + math.cos(wAngle) * wingRadius
+            local wz = corePos.Z + math.sin(wAngle) * wingRadius
+            local wingPos = Vector3.new(wx, corePos.Y, wz)
+
+            local wing = Instance.new("WedgePart")
+            wing.Name = "AegisWing_" .. w
+            wing.Size = Vector3.new(0.45, 4.6, 2.2)
+            wing.CFrame = CFrame.lookAt(wingPos, corePos) * CFrame.Angles(math.rad(-14), 0, 0)
+            wing.Material = Enum.Material.ForceField
+            wing.Color = theme.secondaryColor
+            wing.Transparency = 0.15
+            wing.Anchored = true
+            wing.CanCollide = false
+            wing.Parent = decorFolder
+        end
+    end
+
+    -- 7. Pilar Cahaya Langit & Partikel Bintang (Lv. 12+ & Lv. 20)
+    if lvl >= 12 then
+        local aura = Instance.new("ParticleEmitter")
+        aura.Name = "CoreEvolutionAura"
+        aura.Color = ColorSequence.new(theme.primaryColor, theme.accentColor)
+        aura.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.55), NumberSequenceKeypoint.new(1, 0) })
+        aura.LightEmission = 1
+        aura.Lifetime = NumberRange.new(1.0, 1.9)
+        aura.Rate = if lvl >= 20 then 36 else 16
+        aura.Speed = NumberRange.new(1.5, 4.5)
+        aura.Parent = core
+    end
+
+    if lvl >= 18 then
+        local skyBeam = Instance.new("Part")
+        skyBeam.Name = "AstralSkyBeam"
+        skyBeam.Shape = Enum.PartType.Cylinder
+        skyBeam.Size = Vector3.new(55, if lvl >= 20 then 2.4 else 1.3, if lvl >= 20 then 2.4 else 1.3)
+        skyBeam.CFrame = CFrame.new(corePos.X, corePos.Y + 26, corePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+        skyBeam.Material = Enum.Material.Neon
+        skyBeam.Color = theme.primaryColor
+        skyBeam.Transparency = 0.72
+        skyBeam.Anchored = true
+        skyBeam.CanCollide = false
+        skyBeam.Parent = decorFolder
+    end
+end
+
+-- Animasi 1: Manor Core Hancur saat HP mencapai 0
+function MonsterService.PlayCoreDestroyAnimation(plotModel: Model)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    local oldDecor = plotModel:FindFirstChild("CoreDecorations")
+    if oldDecor then
+        for _, part in ipairs(oldDecor:GetDescendants()) do
+            if part:IsA("BasePart") then
+                if part.Name == "AstralSkyBeam" then
+                    part:Destroy()
+                else
+                    part.Material = Enum.Material.Cobblestone
+                    part.Color = Color3.fromRGB(35, 32, 38)
+                end
+            end
+        end
+    end
+
+    local coreLight = core:FindFirstChildOfClass("PointLight")
+    if coreLight then
+        coreLight.Color = Color3.fromRGB(255, 60, 30)
+        coreLight.Brightness = 0.4
+    end
+
+    core.Material = Enum.Material.Cobblestone
+    core.Color = Color3.fromRGB(35, 32, 38)
+
+    local brokenCF = core.CFrame * CFrame.new(0, -3.2, 0.5) * CFrame.Angles(math.rad(28), math.rad(16), math.rad(-22))
+    TweenService:Create(core, TweenInfo.new(0.55, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+        CFrame = brokenCF,
+    }):Play()
+
+    local smoke = Instance.new("ParticleEmitter")
+    smoke.Name = "DestroyedSmoke"
+    smoke.Color = ColorSequence.new(Color3.fromRGB(30, 30, 35), Color3.fromRGB(80, 40, 40))
+    smoke.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1.5), NumberSequenceKeypoint.new(1, 4.5) })
+    smoke.Lifetime = NumberRange.new(1.2, 2.2)
+    smoke.Rate = 35
+    smoke.Speed = NumberRange.new(3, 7)
+    smoke.Parent = core
+    Debris:AddItem(smoke, BalanceConfig.Core.DefeatRecoveryDuration)
+
+    for _ = 1, 12 do
+        local debrisPart = Instance.new("Part")
+        debrisPart.Size = Vector3.new(math.random(8, 16) / 10, math.random(8, 16) / 10, math.random(8, 16) / 10)
+        debrisPart.Material = Enum.Material.Cobblestone
+        debrisPart.Color = Color3.fromRGB(45, 42, 50)
+        debrisPart.Position = core.Position + Vector3.new(math.random(-3, 3), math.random(0, 3), math.random(-3, 3))
+        debrisPart.Anchored = false
+        debrisPart.CanCollide = true
+        debrisPart.AssemblyLinearVelocity = Vector3.new(math.random(-18, 18), math.random(14, 26), math.random(-18, 18))
+        debrisPart.Parent = plotModel
+        Debris:AddItem(debrisPart, 3.5)
+    end
+end
+
+-- Animasi 2: Manor Core Dibangun Ulang / Regen (seperti diperbaiki kembali)
+function MonsterService.PlayCoreRepairAnimation(plotModel: Model, isFullRestore: boolean)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    local lvl = (plotModel:GetAttribute("CoreLevel") :: number?) or 1
+    local theme = getCoreTierVisuals(lvl)
+    local intactCF, intactSize = getIntactCoreCFrame(plotModel, lvl)
+
+    local spark = Instance.new("ParticleEmitter")
+    spark.Name = "RepairSparks"
+    spark.Color = ColorSequence.new(Color3.fromRGB(90, 255, 140), Color3.fromRGB(255, 230, 110))
+    spark.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.8), NumberSequenceKeypoint.new(1, 0) })
+    spark.LightEmission = 1
+    spark.Lifetime = NumberRange.new(0.6, 1.1)
+    spark.Rate = 45
+    spark.Speed = NumberRange.new(4, 10)
+    spark.Parent = core
+    Debris:AddItem(spark, 1.4)
+
+    core.Material = Enum.Material.Neon
+    core.Color = if isFullRestore then theme.primaryColor else Color3.fromRGB(110, 230, 160)
+
+    local coreLight = core:FindFirstChildOfClass("PointLight")
+    if coreLight then
+        coreLight.Color = if isFullRestore then theme.primaryColor else Color3.fromRGB(90, 255, 140)
+        coreLight.Brightness = 2.6
+    end
+
+    TweenService:Create(core, TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        CFrame = intactCF,
+        Size = intactSize,
+    }):Play()
+
+    if isFullRestore then
+        MonsterService.RebuildCoreArchitecture(plotModel, lvl)
+    else
+        task.delay(0.75, function()
+            if core.Parent and core.Material == Enum.Material.Neon then
+                TweenService:Create(core, TweenInfo.new(0.4), {
+                    Color = theme.primaryColor,
+                }):Play()
+                if coreLight then
+                    coreLight.Color = theme.primaryColor
+                end
+            end
+        end)
+    end
+end
+
+-- Animasi 3: Manor Core Upgrade Level (Evolusi Visual 3D + Gelombang Energi)
+function MonsterService.PlayCoreUpgradeAnimation(plotModel: Model, newLevel: number)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    local theme = getCoreTierVisuals(newLevel)
+    MonsterService.RebuildCoreArchitecture(plotModel, newLevel)
+
+    core.Color = Color3.fromRGB(255, 240, 130)
+
+    local ring = Instance.new("Part")
+    ring.Name = "UpgradeShockwave"
+    ring.Shape = Enum.PartType.Cylinder
+    ring.Material = Enum.Material.Neon
+    ring.Color = theme.secondaryColor
+    ring.Anchored = true
+    ring.CanCollide = false
+    ring.Transparency = 0.2
+    ring.Size = Vector3.new(0.4, 7, 7)
+    ring.CFrame = CFrame.new(core.Position - Vector3.new(0, core.Size.Y * 0.5, 0)) * CFrame.Angles(0, 0, math.rad(90))
+    ring.Parent = plotModel
+
+    local ringTween = TweenService:Create(ring, TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = Vector3.new(0.4, 30, 30),
+        CFrame = CFrame.new(core.Position + Vector3.new(0, core.Size.Y * 0.7, 0)) * CFrame.Angles(0, 0, math.rad(90)),
+        Transparency = 1,
+    })
+    ringTween:Play()
+    ringTween.Completed:Connect(function()
+        ring:Destroy()
+    end)
+
+    task.delay(0.5, function()
+        if core.Parent then
+            TweenService:Create(core, TweenInfo.new(0.45), {
+                Color = theme.primaryColor,
+            }):Play()
+        end
+    end)
+end
+
+local function createMonsterModel(monsterType: string, waveNumber: number, ownerUserId: number): Model
+    local def = BalanceConfig.Monsters[monsterType]
+    assert(def, "[MonsterService] Unknown monster type: " .. tostring(monsterType))
+
+    local hpMultiplier = 1 + ((math.max(1, waveNumber) - 1) * 0.14)
+    local scaledMaxHp = math.floor(def.MaxHealth * hpMultiplier)
+
+    local model = Instance.new("Model")
+    model.Name = "Monster_" .. monsterType
+    model:SetAttribute("MonsterType", monsterType)
+    model:SetAttribute("OwnerUserId", ownerUserId)
+
+    local torso = Instance.new("Part")
+    torso.Name = "Torso"
+    torso.Size = Vector3.new(2.4, 2.5, 1.4)
+    torso.Color = def.Color
+    torso.Material = def.Material
+    torso.Transparency = def.Transparency
+    torso.CanCollide = false
+    torso.Anchored = false
+    torso.Parent = model
+
+    local head = Instance.new("Part")
+    head.Name = "Head"
+    head.Size = Vector3.new(1.6, 1.6, 1.6)
+    head.Shape = Enum.PartType.Ball
+    head.Color = def.Color
+    head.Material = def.Material
+    head.Transparency = def.Transparency
+    head.CanCollide = false
+    head.CFrame = torso.CFrame * CFrame.new(0, 2, 0)
+    head.Parent = model
+
+    local neckWeld = Instance.new("WeldConstraint")
+    neckWeld.Part0 = torso
+    neckWeld.Part1 = head
+    neckWeld.Parent = torso
+
+    local leg1 = Instance.new("Part")
+    leg1.Name = "LeftLeg"
+    leg1.Size = Vector3.new(1, 2, 1)
+    leg1.Color = def.Color
+    leg1.Material = def.Material
+    leg1.Transparency = def.Transparency
+    leg1.CanCollide = false
+    leg1.CFrame = torso.CFrame * CFrame.new(-0.7, -2, 0)
+    leg1.Parent = model
+
+    local weldL = Instance.new("WeldConstraint")
+    weldL.Part0 = torso
+    weldL.Part1 = leg1
+    weldL.Parent = torso
+
+    local leg2 = Instance.new("Part")
+    leg2.Name = "RightLeg"
+    leg2.Size = Vector3.new(1, 2, 1)
+    leg2.Color = def.Color
+    leg2.Material = def.Material
+    leg2.Transparency = def.Transparency
+    leg2.CanCollide = false
+    leg2.CFrame = torso.CFrame * CFrame.new(0.7, -2, 0)
+    leg2.Parent = model
+
+    local weldR = Instance.new("WeldConstraint")
+    weldR.Part0 = torso
+    weldR.Part1 = leg2
+    weldR.Parent = torso
+
+    local light = Instance.new("PointLight")
+    light.Color = if monsterType == "Wraith" then Color3.fromRGB(255, 30, 30) else def.Color
+    light.Range = 14
+    light.Brightness = 2.5
+    light.Parent = head
+
+    if def.Sounds then
+        local groanSound = createSpatialSound(head, "GroanSound", def.Sounds.Groan, def.Sounds.Volume, def.Sounds.Pitch)
+        createSpatialSound(head, "AttackSound", def.Sounds.Attack, def.Sounds.Volume * 1.1, def.Sounds.Pitch)
+        createSpatialSound(head, "DeathSound", def.Sounds.Death, def.Sounds.Volume * 1.2, def.Sounds.Pitch)
+
+        task.delay(0.2, function()
+            if groanSound.Parent then
+                groanSound.PlaybackSpeed = def.Sounds.Pitch * (math.random(95, 105) / 100)
+                groanSound:Play()
+            end
+        end)
+    end
+
+    local humanoid = Instance.new("Humanoid")
+    humanoid.MaxHealth = scaledMaxHp
+    humanoid.Health = scaledMaxHp
+    humanoid.WalkSpeed = def.WalkSpeed
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+    humanoid.Parent = model
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "MonsterGui"
+    bb.Size = UDim2.new(4, 0, 1.2, 0)
+    bb.StudsOffset = Vector3.new(0, 3, 0)
+    bb.AlwaysOnTop = true
+    bb.MaxDistance = 70
+    bb.Parent = head
+
+    local label = Instance.new("TextLabel")
+    label.Name = "NameLabel"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = string.format("%s\nHP: %d/%d", def.DisplayName, humanoid.Health, humanoid.MaxHealth)
+    label.TextColor3 = Color3.fromRGB(255, 80, 80)
+    label.TextStrokeTransparency = 0
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamBold
+    label.Parent = bb
+
+    humanoid.HealthChanged:Connect(function(newHealth)
+        if label.Parent then
+            label.Text = string.format("%s\nHP: %d/%d", def.DisplayName, math.max(0, math.floor(newHealth)), humanoid.MaxHealth)
+        end
+    end)
+
+    model.PrimaryPart = torso
+    return model
+end
+
+function MonsterService.FlashCoreHeal(plotModel: Model, healAmount: number)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    MonsterService.PlayCoreRepairAnimation(plotModel, false)
+
+    local floatGui = Instance.new("BillboardGui")
+    floatGui.Name = "HealFloatGui"
+    floatGui.Size = UDim2.new(5, 0, 1.8, 0)
+    floatGui.StudsOffset = Vector3.new(0, 8.5, 0)
+    floatGui.AlwaysOnTop = true
+    floatGui.MaxDistance = 80
+    floatGui.Parent = core
+
+    local floatLabel = Instance.new("TextLabel")
+    floatLabel.Size = UDim2.new(1, 0, 1, 0)
+    floatLabel.BackgroundTransparency = 1
+    floatLabel.Text = string.format("ðŸ”§ +%d HP ðŸ’š", healAmount)
+    floatLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
+    floatLabel.TextStrokeTransparency = 0
+    floatLabel.TextSize = 18
+    floatLabel.Font = Enum.Font.GothamBlack
+    floatLabel.Parent = floatGui
+
+    local tween = TweenService:Create(floatGui, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        StudsOffset = Vector3.new(0, 11.5, 0),
+    })
+    tween:Play()
+    task.delay(1.2, function()
+        if floatGui.Parent then
+            floatGui:Destroy()
+        end
+    end)
+end
+
+local function updateCoreVisuals(plotModel: Model, currentHp: number, maxHp: number, mode: string?, extraValue: number?)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    local coreGui = core:FindFirstChild("CoreGui")
+    if not coreGui then return end
+
+    local label = coreGui:FindFirstChild("CoreLabel") :: TextLabel?
+    if not label then return end
+
+    local pct = math.clamp(currentHp / maxHp, 0, 1)
+    local statusLine = ""
+    local labelColor = Color3.fromRGB(240, 180, 255)
+    local currentLvl = plotModel:GetAttribute("CoreLevel") or 1
+    local theme = getCoreTierVisuals(currentLvl)
+
+    if mode == "Destroyed" or currentHp <= 0 then
+        statusLine = "\nðŸ’¥ CORE HANCUR! Membangun ulang..."
+        labelColor = Color3.fromRGB(255, 50, 50)
+    elseif mode == "Combat" then
+        statusLine = "\nâš”ï¸ Under Attack! (Regen paused)"
+        labelColor = Color3.fromRGB(255, 60, 60)
+    elseif mode == "Cooldown" then
+        statusLine = string.format("\nâ³ Memperbaiki dalam: %ds...", extraValue or 5)
+        labelColor = Color3.fromRGB(255, 190, 60)
+    elseif mode == "Healing" or mode == "HealingActive" then
+        local healVal = extraValue or BalanceConfig.CoreLevels.GetRegenAmount(currentLvl)
+        statusLine = string.format("\nðŸ”§ Memperbaiki Core (+%d HP)", healVal)
+        labelColor = Color3.fromRGB(90, 255, 130)
+    elseif mode == "Full" or pct >= 1 then
+        statusLine = string.format("\nâœ¨ %s", theme.tierName)
+        labelColor = theme.secondaryColor
+    end
+
+    label.Text = string.format("ðŸ”® MANOR CORE [Lv. %d]\nHP: %d / %d%s", currentLvl, math.floor(currentHp), math.floor(maxHp), statusLine)
+    label.TextColor3 = labelColor
+end
+
+local function syncWaveToClient(player: Player, plotModel: Model, state: PlotWaveState)
+    local waveEvent = Network.GetEvent("WaveStateUpdated")
+    local isCloaked = false
+    if ShopService and ShopService.IsGhostCloaked then
+        isCloaked = ShopService.IsGhostCloaked(plotModel)
+    end
+
+    local payload: Types.WaveState = {
+        WaveNumber = state.WaveNumber,
+        Status = state.Status,
+        TimeRemaining = state.TimeRemaining,
+        MonstersRemaining = state.MonstersRemaining,
+        CoreHealth = state.CoreHealth,
+        CoreMaxHealth = state.CoreMaxHealth,
+        CoreLevel = (plotModel:GetAttribute("CoreLevel") :: number?) or 1,
+        IsGhostCloaked = isCloaked,
+    }
+    waveEvent:FireClient(player, payload)
+end
+
+function MonsterService.Init(dataServiceRef: any, economyServiceRef: any, plotServiceRef: any, itemDropServiceRef: any, shopServiceRef: any)
+    DataService = dataServiceRef
+    EconomyService = economyServiceRef
+    PlotService = plotServiceRef
+    ItemDropService = itemDropServiceRef
+    ShopService = shopServiceRef
+
+    local requestStartWaveFn = Network.GetFunction("RequestStartWave")
+    requestStartWaveFn.OnServerInvoke = function(player: Player)
+        local plot = PlotService.GetPlayerPlot(player)
+        if not plot then return false, "No plot owned." end
+        local state = plotWaveStates[plot]
+        if not state then return false, "Wave state not found." end
+        if state.Status == "Active" then
+            return false, "Wave is already in progress!"
+        end
+        MonsterService.StartWave(player, plot)
+        return true, "Wave summoned!"
+    end
+
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            local now = os.clock()
+
+            for _, player in ipairs(Players:GetPlayers()) do
+                local plot = PlotService.GetPlayerPlot(player)
+                if plot then
+                    local state = plotWaveStates[plot]
+                    if state then
+                        if state.Status == "Waiting" then
+                            state.TimeRemaining -= 1
+                            if state.TimeRemaining <= 0 then
+                                MonsterService.StartWave(player, plot)
+                            else
+                                syncWaveToClient(player, plot, state)
+                            end
+                        elseif state.Status == "Active" then
+                            if ShopService and ShopService.CheckSkills then
+                                ShopService.CheckSkills(player, plot, state)
+                            end
+                            syncWaveToClient(player, plot, state)
+                        end
+
+                        if state.Status ~= "Defeat" and state.CoreHealth < state.CoreMaxHealth then
+                            local timeSinceDamage = now - (state.LastDamageTime or 0)
+                            local outOfCombatDelay = BalanceConfig.Core.OutOfCombatCooldown or 6
+
+                            if timeSinceDamage >= outOfCombatDelay then
+                                local tickInterval = BalanceConfig.Core.RegenTickInterval or 2.5
+                                if (now - (state.LastRegenTick or 0)) >= tickInterval then
+                                    state.LastRegenTick = now
+                                    local coreLvl = plot:GetAttribute("CoreLevel") or 1
+                                    local healAmount = BalanceConfig.CoreLevels.GetRegenAmount(coreLvl)
+
+                                    state.CoreHealth = math.min(state.CoreMaxHealth, state.CoreHealth + healAmount)
+                                    updateCoreVisuals(plot, state.CoreHealth, state.CoreMaxHealth, "Healing", healAmount)
+                                    syncWaveToClient(player, plot, state)
+                                    MonsterService.FlashCoreHeal(plot, healAmount)
+                                else
+                                    updateCoreVisuals(plot, state.CoreHealth, state.CoreMaxHealth, "HealingActive")
+                                end
+                            else
+                                local remainingSeconds = math.ceil(outOfCombatDelay - timeSinceDamage)
+                                updateCoreVisuals(plot, state.CoreHealth, state.CoreMaxHealth, "Cooldown", remainingSeconds)
+                            end
+                        elseif state.CoreHealth >= state.CoreMaxHealth and state.Status ~= "Defeat" then
+                            updateCoreVisuals(plot, state.CoreHealth, state.CoreMaxHealth, "Full")
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+function MonsterService.InitPlotWave(player: Player, plotModel: Model)
+    ensureServices()
+    local data = DataService.GetData(player)
+    local waveNum = if data then data.WaveNumber else 1
+    local coreLvl = if data and data.CoreLevel then data.CoreLevel else 1
+
+    local maxCoreHp = BalanceConfig.CoreLevels.GetMaxHp(coreLvl)
+
+    local state: PlotWaveState = {
+        WaveNumber = waveNum,
+        Status = "Waiting",
+        TimeRemaining = BalanceConfig.Waves.AutoWaveInterval,
+        ActiveMonsters = {},
+        MonstersRemaining = 0,
+        CoreHealth = maxCoreHp,
+        CoreMaxHealth = maxCoreHp,
+        LastDamageTime = 0,
+        LastRegenTick = 0,
+    }
+
+    plotWaveStates[plotModel] = state
+    plotModel:SetAttribute("CoreLevel", coreLvl)
+    MonsterService.RebuildCoreArchitecture(plotModel, coreLvl)
+    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
+    syncWaveToClient(player, plotModel, state)
+end
+
+function MonsterService.ApplyCoreLevel(plotModel: Model, level: number)
+    local state = plotWaveStates[plotModel]
+    if not state then return end
+
+    plotModel:SetAttribute("CoreLevel", level)
+    local newMax = BalanceConfig.CoreLevels.GetMaxHp(level)
+
+    local ownerUserId = plotModel:GetAttribute("OwnerUserId")
+    local player = if ownerUserId then Players:GetPlayerByUserId(ownerUserId) else nil
+
+    local hpDiff = newMax - state.CoreMaxHealth
+    state.CoreMaxHealth = newMax
+    state.CoreHealth = math.clamp(state.CoreHealth + math.max(0, hpDiff), 0, newMax)
+
+    MonsterService.PlayCoreUpgradeAnimation(plotModel, level)
+    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
+    if player then
+        syncWaveToClient(player, plotModel, state)
+    end
+end
+
+function MonsterService.StartWave(player: Player, plotModel: Model)
+    local state = plotWaveStates[plotModel]
+    if not state or state.Status == "Active" then return end
+
+    state.Status = "Active"
+    state.ActiveMonsters = {}
+
+    local monstersToSpawn: { string } = {}
+    local wave = state.WaveNumber
+
+    if wave == 1 then
+        for _ = 1, 5 do table.insert(monstersToSpawn, "Ghost") end
+    elseif wave == 2 then
+        for _ = 1, 5 do table.insert(monstersToSpawn, "Ghost") end
+        for _ = 1, 2 do table.insert(monstersToSpawn, "Zombie") end
+    elseif wave == 3 then
+        for _ = 1, 6 do table.insert(monstersToSpawn, "Ghost") end
+        for _ = 1, 3 do table.insert(monstersToSpawn, "Zombie") end
+        table.insert(monstersToSpawn, "Wraith")
+    else
+        local ghostCount = math.min(14, 4 + math.floor(wave * 1.5))
+        local zombieCount = math.min(10, 2 + math.floor(wave * 0.9))
+        local wraithCount = math.min(6, math.floor(wave * 0.6))
+
+        for _ = 1, ghostCount do table.insert(monstersToSpawn, "Ghost") end
+        for _ = 1, zombieCount do table.insert(monstersToSpawn, "Zombie") end
+        for _ = 1, wraithCount do table.insert(monstersToSpawn, "Wraith") end
+    end
+
+    state.MonstersRemaining = #monstersToSpawn
+    syncWaveToClient(player, plotModel, state)
+
+    local notif = Network.GetEvent("Notification")
+    notif:FireClient(player, string.format("âš ï¸ Wave %d Approaching! Hunt the Monsters!", wave), Color3.fromRGB(255, 60, 60))
+
+    task.spawn(function()
+        local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart?
+        local manorCore = plotModel:FindFirstChild("ManorCore") :: BasePart?
+        if not plotBase or not manorCore then return end
+
+        for _, mType in ipairs(monstersToSpawn) do
+            if state.Status ~= "Active" then break end
+
+            local spawnOffset = Vector3.new(math.random(-14, 14), 3, math.random(33, 36))
+            local worldSpawnPos = (plotBase.CFrame * CFrame.new(spawnOffset)).Position
+
+            local monster = createMonsterModel(mType, wave, player.UserId)
+            local corePos = manorCore.Position
+            monster:PivotTo(CFrame.lookAt(worldSpawnPos, Vector3.new(corePos.X, worldSpawnPos.Y, corePos.Z)))
+            monster.Parent = plotModel
+            table.insert(state.ActiveMonsters, monster)
+            monsterOwnerMap[monster] = player
+
+            MonsterService.RunMonsterAI(monster, mType, player, plotModel, state)
+            task.wait(1.1)
+        end
+    end)
+end
+
+function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player: Player, plotModel: Model, state: PlotWaveState)
+    local def = BalanceConfig.Monsters[monsterType]
+    local humanoid = monster:FindFirstChildOfClass("Humanoid")
+    local rootPart = monster.PrimaryPart
+    local manorCore = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    local head = monster:FindFirstChild("Head") :: BasePart?
+
+    if not humanoid or not rootPart or not manorCore then return end
+
+    local dmgMultiplier = 1 + ((math.max(1, state.WaveNumber) - 1) * 0.08)
+    local scaledDamage = math.floor(def.Damage * dmgMultiplier)
+
+    local groanSound = head and head:FindFirstChild("GroanSound") :: Sound?
+    local attackSound = head and head:FindFirstChild("AttackSound") :: Sound?
+    local deathSound = head and head:FindFirstChild("DeathSound") :: Sound?
+
+    humanoid.Died:Connect(function()
+        ensureServices()
+        monsterOwnerMap[monster] = nil
+        local idx = table.find(state.ActiveMonsters, monster)
+        if idx then table.remove(state.ActiveMonsters, idx) end
+
+        if deathSound and def.Sounds then
+            deathSound.PlaybackSpeed = def.Sounds.Pitch * (math.random(90, 110) / 100)
+            deathSound:Play()
+        end
+
+        if ItemDropService and ItemDropService.SpawnDrop and rootPart then
+            ItemDropService.SpawnDrop(monsterType, rootPart.Position, player, plotModel)
+        end
+
+        if ItemDropService and ItemDropService.SpawnCoinDrop and rootPart then
+            local coinAmount = BalanceConfig.CoreLevels.GetMonsterCoinDrop(monsterType, state.WaveNumber)
+            local coinOffset = Vector3.new(math.random(-2, 2), 0, math.random(-2, 2))
+            ItemDropService.SpawnCoinDrop(coinAmount, rootPart.Position + coinOffset, player, plotModel)
+        end
+
+        EconomyService.AddSouls(player, def.SoulDrop)
+        local notif = Network.GetEvent("Notification")
+        notif:FireClient(player, string.format("+%d Souls ðŸ‘»", def.SoulDrop), Color3.fromRGB(160, 240, 255))
+
+        DataService.UpdateData(player, function(d: Types.PlayerData)
+            d.MonstersDefeated += 1
+        end)
+
+        state.MonstersRemaining = math.max(0, state.MonstersRemaining - 1)
+        syncWaveToClient(player, plotModel, state)
+
+        if state.MonstersRemaining <= 0 and #state.ActiveMonsters == 0 then
+            MonsterService.HandleWaveVictory(player, plotModel, state)
+        end
+
+        task.wait(1.2)
+        monster:Destroy()
+    end)
+
+    task.spawn(function()
+        while monster.Parent and humanoid.Health > 0 and state.Status == "Active" do
+            task.wait(math.random(4, 7))
+            if monster.Parent and humanoid.Health > 0 and groanSound and not groanSound.IsPlaying and def.Sounds then
+                groanSound.PlaybackSpeed = def.Sounds.Pitch * (math.random(92, 108) / 100)
+                groanSound:Play()
+            end
+        end
+    end)
+
+    task.spawn(function()
+        local lastPos = rootPart.Position
+        local stuckTicks = 0
+
+        while monster.Parent and humanoid.Health > 0 and state.Status == "Active" do
+            local dist = (rootPart.Position - manorCore.Position).Magnitude
+            if dist > def.AttackRange then
+                local moved = (rootPart.Position - lastPos).Magnitude
+                lastPos = rootPart.Position
+
+                if moved < 0.65 then
+                    stuckTicks += 1
+                else
+                    stuckTicks = 0
+                end
+
+                if stuckTicks >= 3 then
+                    humanoid.Jump = true
+                    local lateralOffset = Vector3.new(math.random(-12, 12), 0, math.random(-12, 12))
+                    humanoid:MoveTo(rootPart.Position + lateralOffset)
+                    task.wait(0.4)
+                    stuckTicks = 0
+                else
+                    humanoid:MoveTo(manorCore.Position)
+                end
+            else
+                humanoid:MoveTo(rootPart.Position)
+                stuckTicks = 0
+
+                local isCloaked = false
+                if ShopService and ShopService.IsGhostCloaked then
+                    isCloaked = ShopService.IsGhostCloaked(plotModel)
+                end
+
+                if not isCloaked then
+                    if attackSound then
+                        attackSound:Play()
+                    end
+
+                    state.CoreHealth = math.max(0, state.CoreHealth - scaledDamage)
+                    state.LastDamageTime = os.clock()
+                    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Combat")
+                    syncWaveToClient(player, plotModel, state)
+
+                    if def.Ranged then
+                        local combatVisual = Network.GetEvent("CombatVisual")
+                        combatVisual:FireAllClients(rootPart.Position, manorCore.Position, true)
+                    end
+
+                    if state.CoreHealth <= 0 then
+                        MonsterService.HandleWaveDefeat(player, plotModel, state)
+                        break
+                    end
+                end
+
+                task.wait(def.AttackRate)
+            end
+            task.wait(0.4)
+        end
+    end)
+end
+
+function MonsterService.HandleWaveVictory(player: Player, plotModel: Model, state: PlotWaveState)
+    ensureServices()
+    state.Status = "Victory"
+
+    local clearedWave = state.WaveNumber
+    local waveRewardCoins = if BalanceConfig.Waves.GetWaveRewardCoins
+        then BalanceConfig.Waves.GetWaveRewardCoins(clearedWave)
+        else (BalanceConfig.Waves.RewardBaseCoins + (clearedWave * BalanceConfig.Waves.RewardCoinsPerWave))
+
+    local waveRewardSouls = if BalanceConfig.Waves.GetWaveRewardSouls
+        then BalanceConfig.Waves.GetWaveRewardSouls(clearedWave)
+        else (BalanceConfig.Waves.RewardBaseSouls + (clearedWave * BalanceConfig.Waves.RewardSoulsPerWave))
+
+    local actualCoins = EconomyService.AddCoins(player, waveRewardCoins, true)
+    EconomyService.AddSouls(player, waveRewardSouls)
+
+    DataService.UpdateData(player, function(d: Types.PlayerData)
+        d.WaveNumber += 1
+    end)
+
+    state.WaveNumber += 1
+    state.TimeRemaining = BalanceConfig.Waves.AutoWaveInterval
+    syncWaveToClient(player, plotModel, state)
+
+    local notif = Network.GetEvent("Notification")
+    notif:FireClient(
+        player,
+        string.format("ðŸ† Wave %d Selesai! +%d Koin ðŸª™, +%d Souls ðŸ‘»!", clearedWave, actualCoins, waveRewardSouls),
+        Color3.fromRGB(100, 255, 100)
+    )
+
+    task.wait(4)
+    state.Status = "Waiting"
+    syncWaveToClient(player, plotModel, state)
+end
+
+function MonsterService.HandleWaveDefeat(player: Player, plotModel: Model, state: PlotWaveState)
+    ensureServices()
+    state.Status = "Defeat"
+
+    for _, monster in ipairs(state.ActiveMonsters) do
+        if monster and monster.Parent then
+            monsterOwnerMap[monster] = nil
+            monster:Destroy()
+        end
+    end
+    state.ActiveMonsters = {}
+
+    MonsterService.PlayCoreDestroyAnimation(plotModel)
+    updateCoreVisuals(plotModel, 0, state.CoreMaxHealth, "Destroyed")
+
+    local prevWave = state.WaveNumber
+    state.WaveNumber = 1
+    DataService.UpdateData(player, function(d: Types.PlayerData)
+        d.WaveNumber = 1
+    end)
+
+    local notif = Network.GetEvent("Notification")
+    notif:FireClient(player, string.format("ðŸ’¥ Manor Core Hancur! Wave %d Gagal. Membangun ulang ke Wave 1...", prevWave), Color3.fromRGB(255, 50, 50))
+
+    syncWaveToClient(player, plotModel, state)
+
+    local recoveryDuration = BalanceConfig.Core.DefeatRecoveryDuration or 5
+    local steps = 5
+    for step = 1, steps do
+        task.wait(recoveryDuration / steps)
+        state.CoreHealth = math.floor((state.CoreMaxHealth / steps) * step)
+        MonsterService.PlayCoreRepairAnimation(plotModel, step == steps)
+        updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, if step == steps then "Full" else "Healing")
+        syncWaveToClient(player, plotModel, state)
+    end
+
+    state.CoreHealth = state.CoreMaxHealth
+    state.Status = "Waiting"
+    state.TimeRemaining = BalanceConfig.Waves.AutoWaveInterval
+    updateCoreVisuals(plotModel, state.CoreHealth, state.CoreMaxHealth, "Full")
+    syncWaveToClient(player, plotModel, state)
+end
+
+function MonsterService.ClearPlayerWave(player: Player)
+    local plot = PlotService.GetPlayerPlot(player)
+    if plot then
+        local state = plotWaveStates[plot]
+        if state then
+            for _, monster in ipairs(state.ActiveMonsters) do
+                if monster and monster.Parent then
+                    monsterOwnerMap[monster] = nil
+                    monster:Destroy()
+                end
+            end
+        end
+        plotWaveStates[plot] = nil
+    end
+end
+
+return MonsterService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\PlotService.luau ===n--!strict
+--[[
+    PlotService.luau
+    Manages 6 battle arena plots arranged in a circle around the Central Market Hub.
+    Includes native PlotSpawn so players always spawn directly inside their own arena.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Workspace = game:GetService("Workspace")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+
+local PlotService = {}
+
+local plotsFolder: Folder
+local playerPlotMap: { [number]: Model } = {}
+local plotOwnerMap: { [Model]: Player? } = {}
+local bellDebounce: { [number]: number } = {}
+
+local DataService: any
+local EconomyService: any
+local ShopService: any
+local MonsterService: any
+
+local function createPart(props: { [string]: any }): Part
+    local part = Instance.new("Part")
+    part.Anchored = if props.Anchored ~= nil then props.Anchored else true
+    part.CanCollide = if props.CanCollide ~= nil then props.CanCollide else true
+    for k, v in pairs(props) do
+        if k ~= "Anchored" and k ~= "CanCollide" then
+            (part :: any)[k] = v
+        end
+    end
+    return part
+end
+
+local function generatePlot(plotIndex: number, plotCFrame: CFrame): Model
+    local plotModel = Instance.new("Model")
+    plotModel.Name = "Plot_" .. tostring(plotIndex)
+    plotModel:SetAttribute("PlotIndex", plotIndex)
+
+    -- Arena Ground
+    local ground = createPart({
+        Size = BalanceConfig.General.PlotSize or Vector3.new(86, 2, 86),
+        CFrame = plotCFrame,
+        Material = Enum.Material.Slate,
+        Color = Color3.fromRGB(32, 34, 38),
+        Name = "PlotBase",
+        Parent = plotModel,
+    })
+
+    -- Native SpawnLocation inside the Arena (facing Cursed Rift)
+    local spawnPos = (plotCFrame * CFrame.new(0, 1.2, -10)).Position
+    local lookTarget = (plotCFrame * CFrame.new(0, 1.2, 28)).Position
+    local plotSpawn = Instance.new("SpawnLocation")
+    plotSpawn.Name = "PlotSpawn"
+    plotSpawn.Size = Vector3.new(6, 0.4, 6)
+    plotSpawn.CFrame = CFrame.lookAt(spawnPos, lookTarget)
+    plotSpawn.Anchored = true
+    plotSpawn.CanCollide = false
+    plotSpawn.Transparency = 1
+    plotSpawn.Neutral = false
+    plotSpawn.Enabled = false
+    plotSpawn.Duration = 0
+    plotSpawn.Parent = plotModel
+
+    -- Arena Perimeter Walls
+    createPart({
+        Size = Vector3.new(88, 4, 2),
+        CFrame = plotCFrame * CFrame.new(0, 2, -43),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(55, 55, 62),
+        Parent = plotModel,
+    })
+    createPart({
+        Size = Vector3.new(2, 4, 88),
+        CFrame = plotCFrame * CFrame.new(-43, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(55, 55, 62),
+        Parent = plotModel,
+    })
+    createPart({
+        Size = Vector3.new(2, 4, 88),
+        CFrame = plotCFrame * CFrame.new(43, 2, 0),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(55, 55, 62),
+        Parent = plotModel,
+    })
+
+    -- Tactical Cover Pillars in the Arena
+    local pillarOffsets = {
+        Vector3.new(-16, 4.5, 4),
+        Vector3.new(16, 4.5, 4),
+        Vector3.new(-22, 4.5, -14),
+        Vector3.new(22, 4.5, -14),
+    }
+    for i, offset in ipairs(pillarOffsets) do
+        createPart({
+            Size = Vector3.new(3.5, 7, 3.5),
+            CFrame = plotCFrame * CFrame.new(offset),
+            Material = Enum.Material.Cobblestone,
+            Color = Color3.fromRGB(65, 60, 72),
+            Name = "ArenaPillar_" .. i,
+            Parent = plotModel,
+        })
+    end
+
+    -- Manor Core (Objective to Defend & Upgrade with [E])
+    local corePedestal = createPart({
+        Size = Vector3.new(10, 2, 10),
+        CFrame = plotCFrame * CFrame.new(0, 1.5, -30),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(50, 45, 55),
+        Name = "CorePedestal",
+        Parent = plotModel,
+    })
+    local manorCore = createPart({
+        Size = Vector3.new(5, 7, 5),
+        CFrame = corePedestal.CFrame * CFrame.new(0, 4.5, 0),
+        Material = Enum.Material.Neon,
+        Color = Color3.fromRGB(170, 60, 240),
+        Name = "ManorCore",
+        Parent = plotModel,
+    })
+    local coreLight = Instance.new("PointLight")
+    coreLight.Color = Color3.fromRGB(180, 70, 255)
+    coreLight.Range = 28
+    coreLight.Brightness = 2.5
+    coreLight.Parent = manorCore
+
+    local coreGui = Instance.new("BillboardGui")
+    coreGui.Name = "CoreGui"
+    coreGui.Size = UDim2.new(6, 0, 2, 0)
+    coreGui.StudsOffset = Vector3.new(0, 6, 0)
+    coreGui.AlwaysOnTop = true
+    coreGui.MaxDistance = 95
+    coreGui.Parent = manorCore
+
+    local coreLabel = Instance.new("TextLabel")
+    coreLabel.Name = "CoreLabel"
+    coreLabel.Size = UDim2.new(1, 0, 1, 0)
+    coreLabel.BackgroundTransparency = 1
+    coreLabel.Text = "ðŸ”® MANOR CORE [Lv. 1]\nHP: 500 / 500"
+    coreLabel.TextColor3 = Color3.fromRGB(240, 180, 255)
+    coreLabel.TextStrokeTransparency = 0
+    coreLabel.TextSize = 16
+    coreLabel.Font = Enum.Font.GothamBold
+    coreLabel.Parent = coreGui
+
+    -- Wave Summon Bell Pad (Step to summon wave immediately)
+    local bellPad = createPart({
+        Size = Vector3.new(7, 0.25, 7),
+        CFrame = plotCFrame * CFrame.new(20, 1.15, 24),
+        Material = Enum.Material.Neon,
+        Color = Color3.fromRGB(190, 40, 40),
+        Name = "WaveBellPad",
+        CanCollide = false,
+        Parent = plotModel,
+    })
+    local bellGui = Instance.new("BillboardGui")
+    bellGui.Name = "BellGui"
+    bellGui.Size = UDim2.new(5, 0, 2, 0)
+    bellGui.StudsOffset = Vector3.new(0, 4, 0)
+    bellGui.AlwaysOnTop = true
+    bellGui.MaxDistance = 65
+    bellGui.Parent = bellPad
+
+    local bellLabel = Instance.new("TextLabel")
+    bellLabel.Name = "BellLabel"
+    bellLabel.Size = UDim2.new(1, 0, 1, 0)
+    bellLabel.BackgroundTransparency = 1
+    bellLabel.Text = "ðŸ”” CURSED BELL\n[Step to Summon Wave]"
+    bellLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    bellLabel.TextStrokeTransparency = 0
+    bellLabel.TextSize = 15
+    bellLabel.Font = Enum.Font.GothamBold
+    bellLabel.Parent = bellGui
+
+    -- Monster Spawn Rift
+    local riftPad = createPart({
+        Size = Vector3.new(32, 0.15, 8),
+        CFrame = plotCFrame * CFrame.new(0, 1.08, 34),
+        Material = Enum.Material.Neon,
+        Color = Color3.fromRGB(140, 20, 60),
+        Name = "MonsterSpawnRift",
+        CanCollide = false,
+        Parent = plotModel,
+    })
+    local riftLight = Instance.new("PointLight")
+    riftLight.Color = Color3.fromRGB(255, 40, 80)
+    riftLight.Range = 18
+    riftLight.Brightness = 2.5
+    riftLight.Parent = riftPad
+
+    local riftGui = Instance.new("BillboardGui")
+    riftGui.Name = "RiftGui"
+    riftGui.Size = UDim2.new(6, 0, 2, 0)
+    riftGui.StudsOffset = Vector3.new(0, 3, 0)
+    riftGui.AlwaysOnTop = true
+    riftGui.MaxDistance = 65
+    riftGui.Parent = riftPad
+
+    local riftLabel = Instance.new("TextLabel")
+    riftLabel.Name = "RiftLabel"
+    riftLabel.Size = UDim2.new(1, 0, 1, 0)
+    riftLabel.BackgroundTransparency = 1
+    riftLabel.Text = "ðŸŒ€ CURSED RIFT\n[Monster Spawn Zone]"
+    riftLabel.TextColor3 = Color3.fromRGB(255, 80, 120)
+    riftLabel.TextStrokeTransparency = 0
+    riftLabel.TextSize = 14
+    riftLabel.Font = Enum.Font.GothamBold
+    riftLabel.Parent = riftGui
+
+    -- Entrance Archway
+    local gateArch = createPart({
+        Size = Vector3.new(18, 12, 2),
+        CFrame = plotCFrame * CFrame.new(0, 6, 42),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(45, 45, 50),
+        Name = "EntranceGate",
+        Parent = plotModel,
+    })
+    local signGui = Instance.new("BillboardGui")
+    signGui.Name = "OwnerSign"
+    signGui.Size = UDim2.new(12, 0, 2.5, 0)
+    signGui.StudsOffset = Vector3.new(0, 5, 0)
+    signGui.AlwaysOnTop = true
+    signGui.MaxDistance = 140
+    signGui.Parent = gateArch
+
+    local signLabel = Instance.new("TextLabel")
+    signLabel.Name = "SignLabel"
+    signLabel.Size = UDim2.new(1, 0, 1, 0)
+    signLabel.BackgroundTransparency = 1
+    signLabel.Text = string.format("Arena %d: [Vacant]", plotIndex)
+    signLabel.TextColor3 = Color3.fromRGB(210, 210, 220)
+    signLabel.TextStrokeTransparency = 0
+    signLabel.TextSize = 18
+    signLabel.Font = Enum.Font.GothamBlack
+    signLabel.Parent = signGui
+
+    plotModel.PrimaryPart = ground
+    plotModel.Parent = plotsFolder
+
+    PlotService.UpdateCoreLevelPad(plotModel, 1)
+
+    return plotModel
+end
+
+function PlotService.Init(dataServiceRef: any, economyServiceRef: any, shopServiceRef: any)
+    DataService = dataServiceRef
+    EconomyService = economyServiceRef
+    ShopService = shopServiceRef
+
+    -- Remove any leftover static plots in Workspace
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child:IsA("Model") and string.match(child.Name, "^Plot_%d+") then
+            child:Destroy()
+        end
+    end
+
+    local existingPlots = Workspace:FindFirstChild("Plots")
+    if existingPlots then
+        existingPlots:Destroy()
+    end
+
+    plotsFolder = Instance.new("Folder")
+    plotsFolder.Name = "Plots"
+    plotsFolder.Parent = Workspace
+
+    local PLOT_RADIUS = BalanceConfig.General.PlotRadius or 145
+    local NUM_PLOTS = BalanceConfig.General.MaxPlots or 6
+
+    for index = 1, NUM_PLOTS do
+        local angle = ((index - 1) * (2 * math.pi / NUM_PLOTS))
+        local posX = math.sin(angle) * PLOT_RADIUS
+        local posZ = math.cos(angle) * PLOT_RADIUS
+        local plotPos = Vector3.new(posX, 1, posZ)
+
+        local lookAway = plotPos + (plotPos - Vector3.new(0, 1, 0))
+        local plotCF = CFrame.lookAt(plotPos, lookAway)
+
+        local plotModel = generatePlot(index, plotCF)
+        plotOwnerMap[plotModel] = nil
+    end
+
+    PlotService.SetupPadListeners()
+end
+
+function PlotService.SetupPadListeners()
+    for _, plotModel in ipairs(plotsFolder:GetChildren()) do
+        if plotModel:IsA("Model") then
+            local bellPad = plotModel:FindFirstChild("WaveBellPad") :: Part?
+            if bellPad then
+                bellPad.Touched:Connect(function(hit)
+                    local character = hit.Parent
+                    local player = Players:GetPlayerFromCharacter(character)
+                    if player and plotOwnerMap[plotModel] == player then
+                        local now = os.clock()
+                        if (now - (bellDebounce[player.UserId] or 0)) < 1.5 then
+                            return
+                        end
+                        bellDebounce[player.UserId] = now
+
+                        if not MonsterService then
+                            local services = ServerScriptService:FindFirstChild("Services")
+                            if services then
+                                MonsterService = require(services:WaitForChild("MonsterService"))
+                            end
+                        end
+                        if MonsterService and MonsterService.StartWave then
+                            MonsterService.StartWave(player, plotModel)
+                        end
+                    end
+                end)
+            end
+        end
+    end
+end
+
+function PlotService.AssignPlot(player: Player): Model?
+    if not DataService then
+        DataService = require(ServerScriptService.Services.DataService)
+    end
+    if not plotsFolder then
+        plotsFolder = Workspace:FindFirstChild("Plots") :: Folder
+    end
+    if not plotsFolder then return nil end
+
+    if playerPlotMap[player.UserId] then
+        return playerPlotMap[player.UserId]
+    end
+
+    for _, plotModel in ipairs(plotsFolder:GetChildren()) do
+        if plotModel:IsA("Model") and plotOwnerMap[plotModel] == nil then
+            plotOwnerMap[plotModel] = player
+            playerPlotMap[player.UserId] = plotModel
+
+            plotModel:SetAttribute("OwnerUserId", player.UserId)
+            plotModel:SetAttribute("OwnerName", player.Name)
+
+            local plotSpawn = plotModel:FindFirstChild("PlotSpawn") :: SpawnLocation?
+            if plotSpawn then
+                plotSpawn.Enabled = true
+                player.RespawnLocation = plotSpawn
+            end
+
+            local gate = plotModel:FindFirstChild("EntranceGate")
+            if gate then
+                local signGui = gate:FindFirstChild("OwnerSign")
+                if signGui then
+                    local label = signGui:FindFirstChild("SignLabel") :: TextLabel?
+                    if label then
+                        label.Text = string.format("âš”ï¸ %s's Arena", player.DisplayName)
+                        label.TextColor3 = Color3.fromRGB(255, 215, 0)
+                    end
+                end
+            end
+
+            local data = if DataService then DataService.GetData(player) else nil
+            if data then
+                PlotService.UpdateCoreLevelPad(plotModel, data.CoreLevel or 1)
+            end
+
+            local plotEvent = Network.GetEvent("PlotAssigned")
+            if plotEvent then
+                plotEvent:FireClient(player, plotModel:GetAttribute("PlotIndex") or 1, plotModel)
+            end
+
+            return plotModel
+        end
+    end
+
+    return nil
+end
+
+function PlotService.ReleasePlot(player: Player)
+    bellDebounce[player.UserId] = nil
+
+    local plotModel = playerPlotMap[player.UserId]
+    if not plotModel then return end
+
+    plotOwnerMap[plotModel] = nil
+    playerPlotMap[player.UserId] = nil
+
+    plotModel:SetAttribute("OwnerUserId", nil)
+    plotModel:SetAttribute("OwnerName", nil)
+
+    local plotSpawn = plotModel:FindFirstChild("PlotSpawn") :: SpawnLocation?
+    if plotSpawn then
+        plotSpawn.Enabled = false
+    end
+
+    local gate = plotModel:FindFirstChild("EntranceGate")
+    if gate then
+        local signGui = gate:FindFirstChild("OwnerSign")
+        if signGui then
+            local label = signGui:FindFirstChild("SignLabel") :: TextLabel?
+            if label then
+                label.Text = string.format("Arena %d: [Vacant]", plotModel:GetAttribute("PlotIndex") or 0)
+                label.TextColor3 = Color3.fromRGB(200, 200, 210)
+            end
+        end
+    end
+
+    local manorCore = plotModel:FindFirstChild("ManorCore")
+    if manorCore then
+        local coreGui = manorCore:FindFirstChild("CoreGui")
+        if coreGui then
+            local label = coreGui:FindFirstChild("CoreLabel") :: TextLabel?
+            if label then
+                label.Text = "ðŸ”® MANOR CORE [Lv. 1]\nHP: 500 / 500"
+            end
+        end
+    end
+    PlotService.UpdateCoreLevelPad(plotModel, 1)
+end
+
+function PlotService.UpdateCoreLevelPad(plotModel: Model, level: number)
+    plotModel:SetAttribute("CoreLevel", level)
+
+    local manorCore = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not manorCore then return end
+
+    local coreGui = manorCore:FindFirstChild("CoreGui")
+    if coreGui then
+        local label = coreGui:FindFirstChild("CoreLabel") :: TextLabel?
+        if label then
+            local currentText = label.Text
+            if string.find(currentText, "ðŸ”® MANOR CORE") then
+                label.Text = string.gsub(currentText, "ðŸ”® MANOR CORE[^\n]*", string.format("ðŸ”® MANOR CORE [Lv. %d]", level))
+            else
+                label.Text = string.format("ðŸ”® MANOR CORE [Lv. %d]\nHP: %d / %d", level, 500 + ((level - 1) * 200), 500 + ((level - 1) * 200))
+            end
+        end
+    end
+
+    local prompt = manorCore:FindFirstChild("CoreUpgradePrompt") :: ProximityPrompt?
+    if not prompt then
+        prompt = Instance.new("ProximityPrompt")
+        prompt.Name = "CoreUpgradePrompt"
+        prompt.KeyboardKeyCode = Enum.KeyCode.E
+        prompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+        prompt.HoldDuration = 0.4
+        prompt.MaxActivationDistance = 16
+        prompt.RequiresLineOfSight = false
+        prompt.Parent = manorCore
+
+        prompt.Triggered:Connect(function(triggeringPlayer: Player)
+            local owner = plotOwnerMap[plotModel]
+            if owner ~= triggeringPlayer then
+                local notif = Network.GetEvent("Notification")
+                if notif then
+                    notif:FireClient(triggeringPlayer, "â›” Ini bukan Manor Core milikmu!", Color3.fromRGB(255, 80, 80))
+                end
+                return
+            end
+
+            if not ShopService then
+                ShopService = require(ServerScriptService.Services.ShopService)
+            end
+            if ShopService and ShopService.UpgradeCore then
+                ShopService.UpgradeCore(triggeringPlayer)
+            end
+        end)
+    end
+
+    local maxLvl = BalanceConfig.CoreLevels.MaxLevel or 20
+    if level >= maxLvl then
+        prompt.ActionText = "Max Level"
+        prompt.ObjectText = string.format("Manor Core â­ Lv.%d (MAX)", level)
+        prompt.Enabled = false
+    else
+        local nextCost = BalanceConfig.CoreLevels.GetUpgradeCost(level)
+        prompt.ActionText = "Upgrade Core (+HP & +Damage)"
+        prompt.ObjectText = string.format("Lv.%d âž” Lv.%d  (Biaya: %d ðŸª™)", level, level + 1, nextCost)
+        prompt.Enabled = true
+    end
+end
+
+function PlotService.GetPlayerPlot(player: Player): Model?
+    return playerPlotMap[player.UserId]
+end
+
+return PlotService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\ShopService.luau ===n--!strict
+--[[
+    ShopService.luau
+    Handles:
+    1. Selling inventory monster drops for Coins
+    2. Upgrading Manor Core Level (up to Level 20, +150 HP per level)
+    3. Core Skills management:
+       - Level 10: Spectral Retaliation (When HP < 50%, zaps 10 nearest monsters for 175 dmg, 35s CD)
+       - Level 20: Ghost Cloak (When HP < 35%, becomes invincible for 5s, 50s CD)
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local ShopService = {}
+
+local DataService: any
+local EconomyService: any
+local PlotService: any
+local MonsterService: any
+
+-- Skill runtime state per plot model
+type PlotSkillState = {
+    LastL10Trigger: number,
+    LastL20Trigger: number,
+    IsGhostCloaked: boolean,
+    CloakExpiresAt: number,
+}
+
+local plotSkillStates: { [Model]: PlotSkillState } = {}
+
+function ShopService.Init(dataServiceRef: any, economyServiceRef: any, plotServiceRef: any, monsterServiceRef: any)
+    DataService = dataServiceRef
+    EconomyService = economyServiceRef
+    PlotService = plotServiceRef
+    MonsterService = monsterServiceRef
+
+    -- RemoteFunction: RequestSellInventory
+    local sellFn = Network.GetFunction("RequestSellInventory")
+    sellFn.OnServerInvoke = function(player: Player)
+        return ShopService.SellAllInventory(player)
+    end
+
+    -- RemoteFunction: RequestCoreLevelUp
+    local levelUpFn = Network.GetFunction("RequestCoreLevelUp")
+    levelUpFn.OnServerInvoke = function(player: Player)
+        return ShopService.UpgradeCore(player)
+    end
+end
+
+function ShopService.GetSkillState(plotModel: Model): PlotSkillState
+    if not plotSkillStates[plotModel] then
+        plotSkillStates[plotModel] = {
+            LastL10Trigger = 0,
+            LastL20Trigger = 0,
+            IsGhostCloaked = false,
+            CloakExpiresAt = 0,
+        }
+    end
+    return plotSkillStates[plotModel]
+end
+
+function ShopService.IsGhostCloaked(plotModel: Model): boolean
+    local s = plotSkillStates[plotModel]
+    if not s then return false end
+    if s.IsGhostCloaked then
+        if os.clock() > s.CloakExpiresAt then
+            s.IsGhostCloaked = false
+            -- Reset core transparency
+            local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+            if core then
+                core.Transparency = 0
+            end
+            return false
+        end
+        return true
+    end
+    return false
+end
+
+-- Sells all monster loot in the player's inventory for coins
+function ShopService.SellAllInventory(player: Player): (boolean, number, string)
+    local data = DataService.GetData(player)
+    if not data then return false, 0, "No player data." end
+
+    local inv = data.Inventory
+    if not inv then return false, 0, "Inventory empty." end
+
+    local totalCoins = 0
+    local totalItems = 0
+
+    -- Lookup table for prices
+    local priceMap: { [string]: number } = {}
+    for _, drop in pairs(BalanceConfig.MonsterDrops) do
+        priceMap[drop.ItemId] = drop.SellPrice
+    end
+
+    for itemId, count in pairs(inv) do
+        if count > 0 and priceMap[itemId] then
+            totalCoins += (priceMap[itemId] * count)
+            totalItems += count
+        end
+    end
+
+    if totalCoins <= 0 or totalItems <= 0 then
+        local notif = Network.GetEvent("Notification")
+        notif:FireClient(player, "ðŸ›’ Your inventory has no loot to sell! Defeat monsters first.", Color3.fromRGB(240, 200, 80))
+        return false, 0, "No items to sell."
+    end
+
+    -- Clear sold items
+    DataService.UpdateData(player, function(d: Types.PlayerData)
+        d.Inventory = {}
+    end)
+
+    EconomyService.AddCoins(player, totalCoins, true)
+
+    local notif = Network.GetEvent("Notification")
+    notif:FireClient(player, string.format("ðŸ’° Sold %d monster loot for +%d Coins!", totalItems, totalCoins), Color3.fromRGB(80, 255, 120))
+
+    return true, totalCoins, "Items sold successfully."
+end
+
+-- Upgrades Manor Core level
+function ShopService.UpgradeCore(player: Player): (boolean, number, string)
+    local data = DataService.GetData(player)
+    if not data then return false, 0, "Data not loaded." end
+
+    local currentLvl = data.CoreLevel or 1
+    local maxLvl = BalanceConfig.CoreLevels.MaxLevel
+
+    if currentLvl >= maxLvl then
+        local notif = Network.GetEvent("Notification")
+        notif:FireClient(player, "ðŸ”® Manor Core is already at MAX LEVEL (Level 20)!", Color3.fromRGB(255, 215, 0))
+        return false, currentLvl, "Max level reached."
+    end
+
+    local cost = BalanceConfig.CoreLevels.GetUpgradeCost(currentLvl)
+    if data.Coins < cost then
+        local notif = Network.GetEvent("Notification")
+        notif:FireClient(player, string.format("âŒ Need %d Coins to upgrade Manor Core! (You have %d)", cost, data.Coins), Color3.fromRGB(255, 80, 80))
+        return false, currentLvl, "Insufficient coins."
+    end
+
+    EconomyService.DeductCoins(player, cost)
+
+    local newLevel = currentLvl + 1
+    DataService.UpdateData(player, function(d: Types.PlayerData)
+        d.CoreLevel = newLevel
+    end)
+
+    local plot = PlotService.GetPlayerPlot(player)
+    if plot then
+        MonsterService.ApplyCoreLevel(plot, newLevel)
+        PlotService.UpdateCoreLevelPad(plot, newLevel)
+    end
+
+    local newMaxHp = BalanceConfig.CoreLevels.GetMaxHp(newLevel)
+    local skillUnlockMsg = ""
+    if newLevel == 10 then
+        skillUnlockMsg = "\nâš¡ UNLOCKED SKILL: Spectral Retaliation! (Auto zaps 10 monsters when HP < 50%)"
+    elseif newLevel == 20 then
+        skillUnlockMsg = "\nðŸ›¡ï¸ UNLOCKED SKILL: Ghost Cloak! (Auto invulnerable for 5s when HP < 35%)"
+    end
+
+    local notif = Network.GetEvent("Notification")
+    notif:FireClient(player, string.format("ðŸ”® Manor Core upgraded to Level %d! Max HP: %d!%s", newLevel, newMaxHp, skillUnlockMsg), Color3.fromRGB(200, 100, 255))
+
+    EconomyService.SyncClient(player)
+    return true, newLevel, "Core upgraded."
+end
+
+-- Checks and fires Level 10 and Level 20 skills during active combat
+function ShopService.CheckSkills(player: Player, plotModel: Model, state: any)
+    local data = DataService.GetData(player)
+    if not data then return end
+
+    local level = data.CoreLevel or 1
+    local now = os.clock()
+    local skillState = ShopService.GetSkillState(plotModel)
+    local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
+    if not core then return end
+
+    local hpPct = state.CoreHealth / state.CoreMaxHealth
+
+    -- 1. Level 10 Skill: Spectral Retaliation (HP < 50%, zaps 10 nearest monsters)
+    if level >= 10 and hpPct < 0.50 then
+        local l10Config = BalanceConfig.CoreLevels.Skills.Level10
+        if (now - skillState.LastL10Trigger) >= l10Config.Cooldown then
+            skillState.LastL10Trigger = now
+
+            -- Find up to 10 active monsters within range
+            local targets: { { monster: Model, dist: number } } = {}
+            for _, monster in ipairs(state.ActiveMonsters) do
+                if monster and monster.Parent and monster.PrimaryPart then
+                    local hum = monster:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.Health > 0 then
+                        local d = (monster.PrimaryPart.Position - core.Position).Magnitude
+                        if d <= l10Config.Range then
+                            table.insert(targets, { monster = monster, dist = d })
+                        end
+                    end
+                end
+            end
+
+            table.sort(targets, function(a, b) return a.dist < b.dist end)
+
+            local hitCount = 0
+            local combatVisual = Network.GetEvent("CombatVisual")
+            for i = 1, math.min(#targets, l10Config.TargetCount) do
+                local target = targets[i].monster
+                local hum = target:FindFirstChildOfClass("Humanoid")
+                local targetRoot = target.PrimaryPart
+                if hum and targetRoot then
+                    hum:TakeDamage(l10Config.Damage)
+                    hitCount += 1
+                    combatVisual:FireAllClients(core.Position, targetRoot.Position, true)
+                end
+            end
+
+            if hitCount > 0 then
+                local notif = Network.GetEvent("Notification")
+                notif:FireClient(player, string.format("âš¡ SPECTRAL RETALIATION! Manor Core zapped %d monsters for %d damage!", hitCount, l10Config.Damage), Color3.fromRGB(130, 240, 255))
+            end
+        end
+    end
+
+    -- 2. Level 20 Skill: Ghost Cloak (HP < 35%, becomes invincible for 5s)
+    if level >= 20 and hpPct < 0.35 then
+        local l20Config = BalanceConfig.CoreLevels.Skills.Level20
+        if (now - skillState.LastL20Trigger) >= l20Config.Cooldown and not skillState.IsGhostCloaked then
+            skillState.LastL20Trigger = now
+            skillState.IsGhostCloaked = true
+            skillState.CloakExpiresAt = now + l20Config.Duration
+
+            -- Ghostly visual effect on Core
+            core.Transparency = 0.75
+            local notif = Network.GetEvent("Notification")
+            notif:FireClient(player, "ðŸ‘» GHOST CLOAK ACTIVATED! Manor Core is invulnerable for 5 seconds!", Color3.fromRGB(220, 160, 255))
+
+            task.delay(l20Config.Duration, function()
+                if plotModel.Parent and core.Parent then
+                    skillState.IsGhostCloaked = false
+                    core.Transparency = 0
+                    local endNotif = Network.GetEvent("Notification")
+                    endNotif:FireClient(player, "ðŸ›¡ï¸ Ghost Cloak expired.", Color3.fromRGB(180, 180, 200))
+                end
+            end)
+        end
+    end
+end
+
+function ShopService.ClearPlot(plotModel: Model)
+    plotSkillStates[plotModel] = nil
+end
+
+return ShopService
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\ServerScriptService\Services\WorldService.luau ===n--!strict
+--[[
+    WorldService.luau
+    Builds the Central Market Hub at the center of the map (0, 1, 0).
+    Surrounded closely by all 6 player plots (Hexagonal layout).
+    Includes stone pathways connecting the Market Hub directly to every plot entrance!
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local Network = require(ReplicatedStorage.Modules.Network)
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+
+local WorldService = {}
+
+local ShopService: any
+local shopZoneDebounce: { [number]: number } = {}
+
+local HUB_CENTER = Vector3.new(0, 1, 0)
+
+local function createPart(props: { [string]: any }): Part
+    local part = Instance.new("Part")
+    part.Anchored = if props.Anchored ~= nil then props.Anchored else true
+    part.CanCollide = if props.CanCollide ~= nil then props.CanCollide else true
+    for k, v in pairs(props) do
+        if k ~= "Anchored" and k ~= "CanCollide" then
+            (part :: any)[k] = v
+        end
+    end
+    return part
+end
+
+local function buildMarketHub(): Model
+    local hubModel = Instance.new("Model")
+    hubModel.Name = "MarketHub"
+    hubModel.Parent = Workspace
+
+    createPart({
+        Size = Vector3.new(65, 2, 65),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -0.9, 0)),
+        Material = Enum.Material.Cobblestone,
+        Color = Color3.fromRGB(55, 52, 60),
+        Name = "HubPlatform",
+        Parent = hubModel,
+    })
+
+    createPart({
+        Size = Vector3.new(78, 1, 78),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -1.4, 0)),
+        Material = Enum.Material.SmoothPlastic,
+        Color = Color3.fromRGB(40, 38, 48),
+        Name = "HubRing",
+        Parent = hubModel,
+    })
+
+    local obelisk = createPart({
+        Size = Vector3.new(3, 22, 3),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 11, 0)),
+        Material = Enum.Material.Marble,
+        Color = Color3.fromRGB(50, 45, 65),
+        Name = "MarketObelisk",
+        Parent = hubModel,
+    })
+    local crystal = createPart({
+        Size = Vector3.new(2.5, 2.5, 2.5),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 23.5, 0)),
+        Material = Enum.Material.Neon,
+        Color = Color3.fromRGB(80, 220, 255),
+        Shape = Enum.PartType.Ball,
+        Name = "ObeliskCrystal",
+        Parent = hubModel,
+    })
+    local crystalLight = Instance.new("PointLight")
+    crystalLight.Color = Color3.fromRGB(80, 220, 255)
+    crystalLight.Range = 50
+    crystalLight.Brightness = 3
+    crystalLight.Parent = crystal
+
+    local obeliskGui = Instance.new("BillboardGui")
+    obeliskGui.Name = "HubSign"
+    obeliskGui.Size = UDim2.new(10, 0, 2, 0)
+    obeliskGui.StudsOffset = Vector3.new(0, 15, 0)
+    obeliskGui.AlwaysOnTop = true
+    obeliskGui.Parent = obelisk
+
+    local hubTitle = Instance.new("TextLabel")
+    hubTitle.Size = UDim2.new(1, 0, 1, 0)
+    hubTitle.BackgroundTransparency = 1
+    hubTitle.Text = "ðŸ›ï¸ HAUNTED MARKET HUB\n[Short Walk from All Plots]"
+    hubTitle.TextColor3 = Color3.fromRGB(180, 240, 255)
+    hubTitle.TextStrokeTransparency = 0
+    hubTitle.TextSize = 15
+    hubTitle.Font = Enum.Font.GothamBlack
+    hubTitle.Parent = obeliskGui
+
+    local NUM_PLOTS = BalanceConfig.General.MaxPlots or 6
+    local PLOT_RADIUS = BalanceConfig.General.PlotRadius or 145
+    for i = 1, NUM_PLOTS do
+        local angle = ((i - 1) * (2 * math.pi / NUM_PLOTS))
+        local targetX = math.sin(angle) * (PLOT_RADIUS - 42)
+        local targetZ = math.cos(angle) * (PLOT_RADIUS - 42)
+        local targetPos = Vector3.new(targetX, 0.5, targetZ)
+
+        local midPos = (Vector3.new(0, 0.5, 0) + targetPos) / 2
+        local pathLength = (targetPos - Vector3.new(0, 0.5, 0)).Magnitude
+
+        local pathPart = createPart({
+            Size = Vector3.new(8, 0.6, pathLength),
+            CFrame = CFrame.lookAt(midPos, targetPos),
+            Material = Enum.Material.Cobblestone,
+            Color = Color3.fromRGB(60, 58, 65),
+            Name = "RoadToPlot_" .. i,
+            Parent = hubModel,
+        })
+
+        for _, side in ipairs({ -5.5, 5.5 }) do
+            local lanternPost = createPart({
+                Size = Vector3.new(1.2, 5, 1.2),
+                CFrame = pathPart.CFrame * CFrame.new(side, 2.5, 0),
+                Material = Enum.Material.WoodPlanks,
+                Color = Color3.fromRGB(45, 35, 25),
+                Name = "RoadLanternPost",
+                Parent = hubModel,
+            })
+            local lamp = createPart({
+                Size = Vector3.new(1.4, 1.4, 1.4),
+                CFrame = lanternPost.CFrame * CFrame.new(0, 3, 0),
+                Material = Enum.Material.Neon,
+                Color = Color3.fromRGB(255, 180, 90),
+                Name = "RoadLamp",
+                Parent = hubModel,
+            })
+            local lgt = Instance.new("PointLight")
+            lgt.Color = Color3.fromRGB(255, 180, 90)
+            lgt.Range = 16
+            lgt.Brightness = 1.8
+            lgt.Parent = lamp
+        end
+    end
+
+    createPart({
+        Size = Vector3.new(16, 1, 10),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.5, 18)),
+        Material = Enum.Material.WoodPlanks,
+        Color = Color3.fromRGB(80, 40, 25),
+        Name = "ShopStallRoof",
+        Parent = hubModel,
+    })
+    local shopCounter = createPart({
+        Size = Vector3.new(12, 3, 3),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2, 15)),
+        Material = Enum.Material.Wood,
+        Color = Color3.fromRGB(90, 55, 30),
+        Name = "ShopCounter",
+        Parent = hubModel,
+    })
+    local shopZone = createPart({
+        Size = Vector3.new(16, 0.3, 12),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 0.15, 20)),
+        Material = Enum.Material.SmoothPlastic,
+        Color = Color3.fromRGB(50, 180, 70),
+        CanCollide = false,
+        Name = "ShopZone",
+        Parent = hubModel,
+    })
+    shopZone:SetAttribute("IsShopZone", true)
+
+    local shopSignGui = Instance.new("BillboardGui")
+    shopSignGui.Name = "ShopSignGui"
+    shopSignGui.Size = UDim2.new(9, 0, 2.5, 0)
+    shopSignGui.StudsOffset = Vector3.new(0, 6, 0)
+    shopSignGui.AlwaysOnTop = true
+    shopSignGui.Parent = shopCounter
+
+    local shopSignLabel = Instance.new("TextLabel")
+    shopSignLabel.Name = "ShopSignLabel"
+    shopSignLabel.Size = UDim2.new(1, 0, 1, 0)
+    shopSignLabel.BackgroundTransparency = 1
+    shopSignLabel.Text = "ðŸª LOOT SHOP\n[Press E or Step to Sell Loot]"
+    shopSignLabel.TextColor3 = Color3.fromRGB(100, 255, 130)
+    shopSignLabel.TextStrokeTransparency = 0
+    shopSignLabel.TextSize = 15
+    shopSignLabel.Font = Enum.Font.GothamBold
+    shopSignLabel.Parent = shopSignGui
+
+    local shopLight = Instance.new("PointLight")
+    shopLight.Color = Color3.fromRGB(80, 255, 110)
+    shopLight.Range = 20
+    shopLight.Brightness = 1.8
+    shopLight.Parent = shopCounter
+
+    local shopPrompt = Instance.new("ProximityPrompt")
+    shopPrompt.Name = "ShopPrompt"
+    shopPrompt.ActionText = "Jual Semua Loot"
+    shopPrompt.ObjectText = "Old Grimwald"
+    shopPrompt.KeyboardKeyCode = Enum.KeyCode.E
+    shopPrompt.GamepadKeyCode = Enum.KeyCode.ButtonX
+    shopPrompt.HoldDuration = 0
+    shopPrompt.MaxActivationDistance = 16
+    shopPrompt.RequiresLineOfSight = false
+    shopPrompt.Parent = shopCounter
+
+    shopPrompt.Triggered:Connect(function(triggeringPlayer: Player)
+        if not ShopService then
+            ShopService = require(game:GetService("ServerScriptService").Services.ShopService)
+        end
+        if ShopService and ShopService.SellAllInventory then
+            ShopService.SellAllInventory(triggeringPlayer)
+        end
+    end)
+
+    createPart({
+        Size = Vector3.new(2, 3, 1.5),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2.5, 12)),
+        Material = Enum.Material.SmoothPlastic,
+        Color = Color3.fromRGB(90, 70, 50),
+        Name = "ShopkeeperBody",
+        Parent = hubModel,
+    })
+    local keeperHead = createPart({
+        Size = Vector3.new(1.8, 1.8, 1.8),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 4.9, 12)),
+        Material = Enum.Material.SmoothPlastic,
+        Color = Color3.fromRGB(220, 180, 140),
+        Shape = Enum.PartType.Ball,
+        Name = "ShopkeeperHead",
+        Parent = hubModel,
+    })
+    local keeperHat = createPart({
+        Size = Vector3.new(2.2, 1.6, 2.2),
+        CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.1, 12)),
+        Material = Enum.Material.SmoothPlastic,
+        Color = Color3.fromRGB(20, 15, 25),
+        Shape = Enum.PartType.Cylinder,
+        Name = "ShopkeeperHat",
+        Parent = hubModel,
+    })
+    keeperHat.CFrame = keeperHat.CFrame * CFrame.Angles(0, 0, math.rad(90))
+
+    local keeperGui = Instance.new("BillboardGui")
+    keeperGui.Size = UDim2.new(5, 0, 1, 0)
+    keeperGui.StudsOffset = Vector3.new(0, 3.5, 0)
+    keeperGui.AlwaysOnTop = true
+    keeperGui.Parent = keeperHead
+
+    local keeperLabel = Instance.new("TextLabel")
+    keeperLabel.Size = UDim2.new(1, 0, 1, 0)
+    keeperLabel.BackgroundTransparency = 1
+    keeperLabel.Text = "ðŸ§™ Old Grimwald"
+    keeperLabel.TextColor3 = Color3.fromRGB(255, 215, 80)
+    keeperLabel.TextStrokeTransparency = 0
+    keeperLabel.TextSize = 14
+    keeperLabel.Font = Enum.Font.GothamBold
+    keeperLabel.Parent = keeperGui
+
+    local comingSoonPositions = {
+        { pos = Vector3.new(0, 2, -18), label = "âš—ï¸ CRAFTING\n(Coming Soon)" },
+        { pos = Vector3.new(18, 2, 0),  label = "ðŸ” TRADING\n(Coming Soon)" },
+        { pos = Vector3.new(-18, 2, 0), label = "âš”ï¸ CHALLENGE\n(Coming Soon)" },
+    }
+    for _, info in ipairs(comingSoonPositions) do
+        local sign = createPart({
+            Size = Vector3.new(7, 4.5, 1),
+            CFrame = CFrame.new(HUB_CENTER + info.pos),
+            Material = Enum.Material.WoodPlanks,
+            Color = Color3.fromRGB(55, 40, 30),
+            Parent = hubModel,
+        })
+        local signGui2 = Instance.new("BillboardGui")
+        signGui2.Size = UDim2.new(6, 0, 2.5, 0)
+        signGui2.StudsOffset = Vector3.new(0, 3.5, 0)
+        signGui2.AlwaysOnTop = true
+        signGui2.Parent = sign
+
+        local signLbl = Instance.new("TextLabel")
+        signLbl.Size = UDim2.new(1, 0, 1, 0)
+        signLbl.BackgroundTransparency = 1
+        signLbl.Text = info.label
+        signLbl.TextColor3 = Color3.fromRGB(180, 160, 130)
+        signLbl.TextStrokeTransparency = 0
+        signLbl.TextSize = 14
+        signLbl.Font = Enum.Font.GothamBold
+        signLbl.Parent = signGui2
+    end
+
+    return hubModel
+end
+
+function WorldService.Init(shopServiceRef: any)
+    ShopService = shopServiceRef
+
+    local existing = Workspace:FindFirstChild("MarketHub")
+    if existing then existing:Destroy() end
+    local hubModel = buildMarketHub()
+
+    -- FIXED: Added debounce to prevent notification spam when standing on ShopZone
+    local shopZone = hubModel:FindFirstChild("ShopZone") :: BasePart?
+    if shopZone then
+        shopZone.Touched:Connect(function(hit)
+            local character = hit.Parent
+            local player = Players:GetPlayerFromCharacter(character)
+            if player and ShopService and ShopService.SellAllInventory then
+                local now = os.clock()
+                if (now - (shopZoneDebounce[player.UserId] or 0)) < 1.5 then
+                    return
+                end
+                shopZoneDebounce[player.UserId] = now
+                ShopService.SellAllInventory(player)
+            end
+        end)
+    end
+
+    Players.PlayerRemoving:Connect(function(player)
+        shopZoneDebounce[player.UserId] = nil
+    end)
+
+    task.spawn(function()
+        local crystalPart = hubModel:FindFirstChild("ObeliskCrystal") :: BasePart?
+        if not crystalPart then return end
+        while crystalPart.Parent do
+            local tUp = TweenService:Create(crystalPart, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Size = Vector3.new(3.5, 3.5, 3.5),
+            })
+            tUp:Play()
+            task.wait(1.5)
+            local tDown = TweenService:Create(crystalPart, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Size = Vector3.new(2.5, 2.5, 2.5),
+            })
+            tDown:Play()
+            task.wait(1.5)
+        end
+    end)
+end
+
+return WorldService
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterGui\GuiTheme.luau ===n--!strict
+--[[
+    GuiTheme.luau
+    Spooky Gothic color palette and typography constants used across the game's UI.
+]]
+
+local GuiTheme = {
+    Colors = {
+        Background = Color3.fromRGB(24, 20, 28),
+        BackgroundCard = Color3.fromRGB(35, 30, 40),
+        Border = Color3.fromRGB(90, 70, 110),
+        AccentPurple = Color3.fromRGB(180, 70, 255),
+        CoinsGold = Color3.fromRGB(255, 220, 70),
+        SoulsCyan = Color3.fromRGB(160, 240, 255),
+        HealthGreen = Color3.fromRGB(80, 230, 100),
+        HealthOrange = Color3.fromRGB(240, 160, 50),
+        HealthRed = Color3.fromRGB(240, 50, 50),
+        TextPrimary = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(210, 200, 225),
+    },
+    Fonts = {
+        Header = Enum.Font.GothamBold,
+        Body = Enum.Font.GothamMedium,
+        Sign = Enum.Font.GothamBlack,
+    },
+}
+
+return GuiTheme
+
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterPlayer\StarterPlayerScripts\ClientMain.client.luau ===n--!strict
+--[[
+    ClientMain.client.luau
+    Root client-side entry point for Haunted Manor Tycoon.
+    Initializes UI, Plot aesthetics, Combat input, and Core Upgrade proximity controllers.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Controllers = script.Parent:WaitForChild("Controllers")
+local UIController = require(Controllers:WaitForChild("UIController"))
+local PlotController = require(Controllers:WaitForChild("PlotController"))
+local CombatController = require(Controllers:WaitForChild("CombatController"))
+local CoreUpgradeController = require(Controllers:WaitForChild("CoreUpgradeController"))
+
+print("========================================")
+print("  Haunted Manor Tycoon - Client Starting")
+print("========================================")
+
+-- Initialize Controllers
+UIController.Init()
+PlotController.Init()
+CombatController.Init()
+CoreUpgradeController.Init()
+
+print("[ClientMain] All client controllers initialized successfully.")
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterPlayer\StarterPlayerScripts\Controllers\CombatController.luau ===n--!strict
+--[[
+    CombatController.luau
+    Handles client-side Holy Lantern aiming, click-to-attack raycast/proximity targeting,
+    beam visual effects, and Holy Laser Zap combat audio.
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local Modules = ReplicatedStorage:WaitForChild("Modules", 15)
+ReplicatedStorage:WaitForChild("Remotes", 15)
+
+local BalanceConfig = require(ReplicatedStorage:WaitForChild("Config"):WaitForChild("BalanceConfig"))
+local Network = require(Modules:WaitForChild("Network"))
+
+local CombatController = {}
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+local lastAttack = 0
+local attackSound: Sound
+
+local function findNearestMonster(origin: Vector3, maxRange: number): Model?
+    local plotsFolder = Workspace:FindFirstChild("Plots")
+    if not plotsFolder then return nil end
+
+    local bestMonster: Model? = nil
+    local bestDist = maxRange
+
+    for _, desc in ipairs(plotsFolder:GetDescendants()) do
+        if desc:IsA("Model") and desc:GetAttribute("MonsterType") ~= nil then
+            local hum = desc:FindFirstChildOfClass("Humanoid")
+            local root = desc.PrimaryPart or desc:FindFirstChild("Torso") :: BasePart?
+            if hum and hum.Health > 0 and root then
+                local dist = (origin - root.Position).Magnitude
+                if dist <= bestDist then
+                    bestDist = dist
+                    bestMonster = desc
+                end
+            end
+        end
+    end
+
+    return bestMonster
+end
+
+local function spawnBeamEffect(startPos: Vector3, endPos: Vector3, hitMonster: boolean)
+    local distance = (endPos - startPos).Magnitude
+    if distance < 0.5 then return end
+
+    local beam = Instance.new("Part")
+    beam.Name = "HolyBeam"
+    beam.Anchored = true
+    beam.CanCollide = false
+    beam.Material = Enum.Material.Neon
+    beam.Color = if hitMonster then Color3.fromRGB(255, 240, 140) else Color3.fromRGB(200, 220, 255)
+    beam.Size = Vector3.new(if hitMonster then 0.45 else 0.25, if hitMonster then 0.45 else 0.25, distance)
+    beam.CFrame = CFrame.lookAt(startPos, endPos) * CFrame.new(0, 0, -distance / 2)
+    beam.Parent = Workspace
+
+    local tween = TweenService:Create(beam, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Transparency = 1,
+        Size = Vector3.new(0.05, 0.05, distance),
+    })
+    tween:Play()
+    tween.Completed:Connect(function()
+        beam:Destroy()
+    end)
+end
+
+function CombatController.Init()
+    attackSound = Instance.new("Sound")
+    attackSound.Name = "LanternAttackSound"
+    attackSound.SoundId = (BalanceConfig.Weapon and BalanceConfig.Weapon.SoundId) or "rbxassetid://130113322"
+    attackSound.Volume = 0.7
+    attackSound.PlaybackSpeed = 1.15
+    attackSound.Parent = Workspace
+
+    local combatVisualEvent = Network.GetEvent("CombatVisual")
+    combatVisualEvent.OnClientEvent:Connect(function(startPos: Vector3, endPos: Vector3, hitMonster: boolean)
+        spawnBeamEffect(startPos, endPos, hitMonster)
+    end)
+
+    UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local character = player.Character
+            if not character then return end
+
+            local weaponName = (BalanceConfig.Weapon and BalanceConfig.Weapon.Name) or "Holy Lantern"
+            local equipped = character:FindFirstChild(weaponName)
+            if not equipped then return end
+
+            local cooldown = (BalanceConfig.Weapon and BalanceConfig.Weapon.Cooldown) or 0.5
+            local now = os.clock()
+            if (now - lastAttack) < cooldown then return end
+            lastAttack = now
+
+            local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+            if not hrp then return end
+
+            local targetMonster: Model? = nil
+            local hitInstance = mouse.Target
+            if hitInstance then
+                local candidate = hitInstance:FindFirstAncestorOfClass("Model")
+                if candidate and candidate:GetAttribute("MonsterType") ~= nil then
+                    targetMonster = candidate
+                end
+            end
+
+            if not targetMonster then
+                local range = (BalanceConfig.Weapon and BalanceConfig.Weapon.Range) or 36
+                targetMonster = findNearestMonster(hrp.Position, range)
+            end
+
+            attackSound:Play()
+            local attackEvent = Network.GetEvent("AttackRequest")
+            attackEvent:FireServer(targetMonster)
+        end
+    end)
+end
+
+return CombatController
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterPlayer\StarterPlayerScripts\Controllers\CoreUpgradeController.luau ===n--!strict
+--[[
+    CoreUpgradeController.luau
+    Client-side controller for Manor Core and Shop interactions.
+    Now leverages Roblox's official ProximityPrompt system for seamless,
+    highly responsive, cross-platform [E] interactions.
+]]
+
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+local Network = require(ReplicatedStorage.Modules.Network)
+local Types = require(ReplicatedStorage.Modules.Types)
+
+local CoreUpgradeController = {}
+
+function CoreUpgradeController.Init()
+    print("[CoreUpgradeController] Initialized with native Roblox ProximityPrompt support.")
+
+    -- Optional: Play a responsive sound or visual feedback when player triggers a prompt
+    ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
+        if prompt.Name == "CoreUpgradePrompt" then
+            -- Optional client side chime
+        elseif prompt.Name == "ShopPrompt" then
+            -- Optional client side register chime
+        end
+    end)
+end
+
+return CoreUpgradeController
+
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterPlayer\StarterPlayerScripts\Controllers\PlotController.luau ===n--!strict
+--[[
+    PlotController.luau
+    Handles client-side aesthetic pad animations, pulsing neon glow effects,
+    and cleans up distant BillboardGui clutter so labels only appear near the player.
+]]
+
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local PlotController = {}
+
+local activeConnections: { [string]: RBXScriptConnection } = {}
+
+local function applyBillboardDistance(desc: Instance)
+    if desc:IsA("BillboardGui") then
+        if desc.Name == "OwnerSign" or desc.Name == "HubSign" then
+            desc.MaxDistance = 140
+        elseif desc.Name == "CoreGui" then
+            desc.MaxDistance = 95
+        else
+            desc.MaxDistance = 65
+        end
+    end
+end
+
+function PlotController.Init()
+    local plotsFolder = Workspace:WaitForChild("Plots", 10) :: Folder?
+    if not plotsFolder then return end
+
+    -- Apply clean view distances to existing and newly spawned BillboardGuis
+    for _, desc in ipairs(Workspace:GetDescendants()) do
+        applyBillboardDistance(desc)
+    end
+
+    activeConnections["BillboardWatch"] = Workspace.DescendantAdded:Connect(function(desc)
+        applyBillboardDistance(desc)
+    end)
+
+    local timeElapsed = 0
+
+    local renderConnection = RunService.RenderStepped:Connect(function(dt: number)
+        timeElapsed += dt
+        local pulse = (math.sin(timeElapsed * 3) + 1) / 2 -- 0 to 1
+
+        for _, plot in ipairs(plotsFolder:GetChildren()) do
+            if plot:IsA("Model") then
+                -- Pulse Vault Pad
+                local vaultPad = plot:FindFirstChild("VaultPad") :: BasePart?
+                if vaultPad then
+                    vaultPad.Transparency = 0.1 + (pulse * 0.2)
+                end
+
+                -- Pulse Cursed Bell Pad
+                local bellPad = plot:FindFirstChild("WaveBellPad") :: BasePart?
+                if bellPad then
+                    bellPad.Transparency = 0.1 + ((1 - pulse) * 0.2)
+                end
+
+                -- Pulse only unlocked/available Upgrade Pads (leave locked dim pads at 0.7)
+                local padsFolder = plot:FindFirstChild("Pads")
+                if padsFolder then
+                    for _, pad in ipairs(padsFolder:GetChildren()) do
+                        if pad:IsA("BasePart") and pad.Transparency < 0.5 then
+                            pad.Transparency = 0.15 + (pulse * 0.15)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
+    activeConnections["PadPulse"] = renderConnection
+end
+
+function PlotController.Cleanup()
+    for _, conn in pairs(activeConnections) do
+        conn:Disconnect()
+    end
+    table.clear(activeConnections)
+end
+
+return PlotController
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\src\StarterPlayer\StarterPlayerScripts\Controllers\UIController.luau ===n--!strict
+--[[
+    UIController.luau
+    Creates and drives the complete touch-friendly ScreenGui HUD:
+    - Currency Display (Coins ðŸª™ & Souls ðŸ‘»)
+    - Manor Core Health Bar & Ghost Cloak indicator
+    - Wave Defense Status & Summon Button ðŸ””
+    - Notification Toasts (animated purchase/alert cards)
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local Modules = ReplicatedStorage:WaitForChild("Modules", 15)
+ReplicatedStorage:WaitForChild("Remotes", 15)
+
+local Network = require(Modules:WaitForChild("Network"))
+local Types = require(Modules:WaitForChild("Types"))
+
+local UIController = {}
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui") :: PlayerGui
+
+local screenGui: ScreenGui
+local coinsLabel: TextLabel
+local soulsLabel: TextLabel
+local invLabel: TextLabel
+local plotLabel: TextLabel
+local coreHpLabel: TextLabel
+local coreHpBarFill: Frame
+local waveStatusLabel: TextLabel
+local summonWaveBtn: TextButton
+local toastContainer: Frame
+
+local function createCorner(parent: GuiObject, radius: number)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius)
+    corner.Parent = parent
+end
+
+local function createStroke(parent: GuiObject, color: Color3, thickness: number)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color
+    stroke.Thickness = thickness
+    stroke.Parent = parent
+end
+
+function UIController.Init()
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "HauntedManorGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = playerGui
+
+    -- 1. Top HUD Bar
+    local topBar = Instance.new("Frame")
+    topBar.Name = "TopBar"
+    topBar.Size = UDim2.new(0, 560, 0, 52)
+    topBar.Position = UDim2.new(0.5, -280, 0, 15)
+    topBar.BackgroundColor3 = Color3.fromRGB(24, 20, 28)
+    topBar.BackgroundTransparency = 0.2
+    topBar.BorderSizePixel = 0
+    topBar.Parent = screenGui
+    createCorner(topBar, 12)
+    createStroke(topBar, Color3.fromRGB(90, 70, 110), 1.5)
+
+    -- Coins Card
+    local coinsCard = Instance.new("Frame")
+    coinsCard.Name = "CoinsCard"
+    coinsCard.Size = UDim2.new(0.25, 0, 0.8, 0)
+    coinsCard.Position = UDim2.new(0.015, 0, 0.1, 0)
+    coinsCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
+    coinsCard.BorderSizePixel = 0
+    coinsCard.Parent = topBar
+    createCorner(coinsCard, 8)
+
+    coinsLabel = Instance.new("TextLabel")
+    coinsLabel.Name = "CoinsLabel"
+    coinsLabel.Size = UDim2.new(1, -8, 1, 0)
+    coinsLabel.Position = UDim2.new(0, 6, 0, 0)
+    coinsLabel.BackgroundTransparency = 1
+    coinsLabel.Text = "ðŸª™ 100"
+    coinsLabel.TextColor3 = Color3.fromRGB(255, 220, 70)
+    coinsLabel.TextSize = 15
+    coinsLabel.Font = Enum.Font.GothamBold
+    coinsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    coinsLabel.Parent = coinsCard
+
+    -- Souls Card
+    local soulsCard = Instance.new("Frame")
+    soulsCard.Name = "SoulsCard"
+    soulsCard.Size = UDim2.new(0.24, 0, 0.8, 0)
+    soulsCard.Position = UDim2.new(0.28, 0, 0.1, 0)
+    soulsCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
+    soulsCard.BorderSizePixel = 0
+    soulsCard.Parent = topBar
+    createCorner(soulsCard, 8)
+
+    soulsLabel = Instance.new("TextLabel")
+    soulsLabel.Name = "SoulsLabel"
+    soulsLabel.Size = UDim2.new(1, -8, 1, 0)
+    soulsLabel.Position = UDim2.new(0, 6, 0, 0)
+    soulsLabel.BackgroundTransparency = 1
+    soulsLabel.Text = "ðŸ‘» 0"
+    soulsLabel.TextColor3 = Color3.fromRGB(160, 240, 255)
+    soulsLabel.TextSize = 15
+    soulsLabel.Font = Enum.Font.GothamBold
+    soulsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    soulsLabel.Parent = soulsCard
+
+    -- Inventory Card
+    local invCard = Instance.new("Frame")
+    invCard.Name = "InventoryCard"
+    invCard.Size = UDim2.new(0.24, 0, 0.8, 0)
+    invCard.Position = UDim2.new(0.535, 0, 0.1, 0)
+    invCard.BackgroundColor3 = Color3.fromRGB(35, 30, 40)
+    invCard.BorderSizePixel = 0
+    invCard.Parent = topBar
+    createCorner(invCard, 8)
+
+    invLabel = Instance.new("TextLabel")
+    invLabel.Name = "InventoryLabel"
+    invLabel.Size = UDim2.new(1, -8, 1, 0)
+    invLabel.Position = UDim2.new(0, 6, 0, 0)
+    invLabel.BackgroundTransparency = 1
+    invLabel.Text = "ðŸŽ’ Loot: 0"
+    invLabel.TextColor3 = Color3.fromRGB(120, 255, 160)
+    invLabel.TextSize = 14
+    invLabel.Font = Enum.Font.GothamBold
+    invLabel.TextXAlignment = Enum.TextXAlignment.Left
+    invLabel.Parent = invCard
+
+    -- Plot Card
+    local plotCard = Instance.new("Frame")
+    plotCard.Name = "PlotCard"
+    plotCard.Size = UDim2.new(0.19, 0, 0.8, 0)
+    plotCard.Position = UDim2.new(0.79, 0, 0.1, 0)
+    plotCard.BackgroundColor3 = Color3.fromRGB(45, 35, 55)
+    plotCard.BorderSizePixel = 0
+    plotCard.Parent = topBar
+    createCorner(plotCard, 8)
+
+    plotLabel = Instance.new("TextLabel")
+    plotLabel.Name = "PlotLabel"
+    plotLabel.Size = UDim2.new(1, 0, 1, 0)
+    plotLabel.BackgroundTransparency = 1
+    plotLabel.Text = "ðŸ° Arena: #1"
+    plotLabel.TextColor3 = Color3.fromRGB(220, 200, 240)
+    plotLabel.TextSize = 13
+    plotLabel.Font = Enum.Font.GothamMedium
+    plotLabel.Parent = plotCard
+
+    -- 2. Wave & Manor Core Defense HUD (Kiri Atas)
+    local defensePanel = Instance.new("Frame")
+    defensePanel.Name = "DefensePanel"
+    defensePanel.Size = UDim2.new(0, 320, 0, 100)
+    defensePanel.Position = UDim2.new(0.02, 0, 0.12, 0)
+    defensePanel.BackgroundColor3 = Color3.fromRGB(24, 20, 28)
+    defensePanel.BackgroundTransparency = 0.25
+    defensePanel.BorderSizePixel = 0
+    defensePanel.Parent = screenGui
+    createCorner(defensePanel, 12)
+    createStroke(defensePanel, Color3.fromRGB(120, 60, 160), 1.5)
+
+    coreHpLabel = Instance.new("TextLabel")
+    coreHpLabel.Name = "CoreHpLabel"
+    coreHpLabel.Size = UDim2.new(1, -20, 0, 22)
+    coreHpLabel.Position = UDim2.new(0, 10, 0, 8)
+    coreHpLabel.BackgroundTransparency = 1
+    coreHpLabel.Text = "ðŸ”® Core [Lv.1] HP: 500 / 500"
+    coreHpLabel.TextColor3 = Color3.fromRGB(240, 200, 255)
+    coreHpLabel.TextSize = 14
+    coreHpLabel.Font = Enum.Font.GothamBold
+    coreHpLabel.TextXAlignment = Enum.TextXAlignment.Left
+    coreHpLabel.Parent = defensePanel
+
+    local coreHpTrack = Instance.new("Frame")
+    coreHpTrack.Name = "CoreHpTrack"
+    coreHpTrack.Size = UDim2.new(1, -20, 0, 12)
+    coreHpTrack.Position = UDim2.new(0, 10, 0, 32)
+    coreHpTrack.BackgroundColor3 = Color3.fromRGB(40, 35, 45)
+    coreHpTrack.BorderSizePixel = 0
+    coreHpTrack.Parent = defensePanel
+    createCorner(coreHpTrack, 6)
+
+    coreHpBarFill = Instance.new("Frame")
+    coreHpBarFill.Name = "CoreHpBarFill"
+    coreHpBarFill.Size = UDim2.new(1, 0, 1, 0)
+    coreHpBarFill.BackgroundColor3 = Color3.fromRGB(180, 70, 255)
+    coreHpBarFill.BorderSizePixel = 0
+    coreHpBarFill.Parent = coreHpTrack
+    createCorner(coreHpBarFill, 6)
+
+    waveStatusLabel = Instance.new("TextLabel")
+    waveStatusLabel.Name = "WaveStatusLabel"
+    waveStatusLabel.Size = UDim2.new(0.65, 0, 0, 38)
+    waveStatusLabel.Position = UDim2.new(0, 10, 0, 52)
+    waveStatusLabel.BackgroundTransparency = 1
+    waveStatusLabel.Text = "â³ Wave 1 in: 45s"
+    waveStatusLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
+    waveStatusLabel.TextSize = 13
+    waveStatusLabel.Font = Enum.Font.GothamMedium
+    waveStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    waveStatusLabel.Parent = defensePanel
+
+    summonWaveBtn = Instance.new("TextButton")
+    summonWaveBtn.Name = "SummonWaveBtn"
+    summonWaveBtn.Size = UDim2.new(0.3, 0, 0, 34)
+    summonWaveBtn.Position = UDim2.new(0.68, 0, 0, 54)
+    summonWaveBtn.BackgroundColor3 = Color3.fromRGB(170, 45, 45)
+    summonWaveBtn.Text = "ðŸ”” Summon"
+    summonWaveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    summonWaveBtn.TextSize = 12
+    summonWaveBtn.Font = Enum.Font.GothamBold
+    summonWaveBtn.Parent = defensePanel
+    createCorner(summonWaveBtn, 8)
+
+    summonWaveBtn.MouseButton1Click:Connect(function()
+        local requestWaveFn = Network.GetFunction("RequestStartWave")
+        requestWaveFn:InvokeServer()
+    end)
+
+    -- 3. Notification Toast Container
+    toastContainer = Instance.new("Frame")
+    toastContainer.Name = "ToastContainer"
+    toastContainer.Size = UDim2.new(0, 380, 0, 120)
+    toastContainer.Position = UDim2.new(0.5, -190, 0.82, 0)
+    toastContainer.BackgroundTransparency = 1
+    toastContainer.Parent = screenGui
+
+    local updateEvent = Network.GetEvent("PlayerDataUpdated")
+    updateEvent.OnClientEvent:Connect(function(data: Types.PlayerData)
+        UIController.UpdatePlayerData(data)
+    end)
+
+    local plotAssignedEvent = Network.GetEvent("PlotAssigned")
+    plotAssignedEvent.OnClientEvent:Connect(function(index: number)
+        plotLabel.Text = string.format("ðŸ° Arena: #%d", tonumber(index) or 1)
+    end)
+
+    local waveStateEvent = Network.GetEvent("WaveStateUpdated")
+    waveStateEvent.OnClientEvent:Connect(function(state: Types.WaveState)
+        UIController.UpdateWaveState(state)
+    end)
+
+    local notifEvent = Network.GetEvent("Notification")
+    notifEvent.OnClientEvent:Connect(function(msg: string, color: Color3?)
+        UIController.ShowToast(msg, color)
+    end)
+
+    task.spawn(function()
+        local getPlayerDataFn = Network.GetFunction("GetPlayerData")
+        local ok, data = pcall(function()
+            return getPlayerDataFn:InvokeServer()
+        end)
+        if ok and data then
+            UIController.UpdatePlayerData(data :: Types.PlayerData)
+        end
+    end)
+end
+
+function UIController.UpdatePlayerData(data: Types.PlayerData)
+    if not data then return end
+    coinsLabel.Text = string.format("ðŸª™ %d", tonumber(data.Coins) or 0)
+    soulsLabel.Text = string.format("ðŸ‘» %d", tonumber(data.Souls) or 0)
+
+    if invLabel then
+        local count = 0
+        if type(data.Inventory) == "table" then
+            for _, c in pairs(data.Inventory) do
+                count += (tonumber(c) or 0)
+            end
+        end
+        invLabel.Text = string.format("ðŸŽ’ Loot: %d", count)
+    end
+end
+
+function UIController.UpdateWaveState(state: Types.WaveState)
+    if not state then return end
+    local lvl = tonumber(state.CoreLevel) or 1
+    local curHp = tonumber(state.CoreHealth) or 0
+    local maxHp = math.max(1, tonumber(state.CoreMaxHealth) or 500)
+    local pct = math.clamp(curHp / maxHp, 0, 1)
+    coreHpBarFill.Size = UDim2.new(pct, 0, 1, 0)
+
+    if state.IsGhostCloaked then
+        coreHpLabel.Text = string.format("ðŸ›¡ï¸ GHOST CLOAK ACTIVE! (%d/%d)", math.floor(curHp), math.floor(maxHp))
+        coreHpLabel.TextColor3 = Color3.fromRGB(160, 240, 255)
+        coreHpBarFill.BackgroundColor3 = Color3.fromRGB(120, 230, 255)
+    else
+        coreHpLabel.Text = string.format("ðŸ”® Core [Lv.%d] HP: %d / %d", lvl, math.floor(curHp), math.floor(maxHp))
+        coreHpLabel.TextColor3 = Color3.fromRGB(240, 200, 255)
+        if pct <= 0.25 then
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 50, 50)
+        elseif pct <= 0.5 then
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 160, 50)
+        else
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(180, 70, 255)
+        end
+    end
+
+    local waveNum = tonumber(state.WaveNumber) or 1
+    if state.Status == "Waiting" then
+        waveStatusLabel.Text = string.format("â³ Wave %d in: %ds", waveNum, math.max(0, tonumber(state.TimeRemaining) or 0))
+        waveStatusLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
+        summonWaveBtn.Visible = true
+    elseif state.Status == "Active" then
+        waveStatusLabel.Text = string.format("âš”ï¸ Wave %d: %d Left", waveNum, tonumber(state.MonstersRemaining) or 0)
+        waveStatusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
+        summonWaveBtn.Visible = false
+    elseif state.Status == "Victory" then
+        waveStatusLabel.Text = "ðŸ† Wave Survived!"
+        waveStatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        summonWaveBtn.Visible = false
+    elseif state.Status == "Defeat" then
+        waveStatusLabel.Text = "ðŸ’€ Core Broken! Recovering..."
+        waveStatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+        summonWaveBtn.Visible = false
+    end
+end
+
+function UIController.ShowToast(message: string, color: Color3?)
+    local toast = Instance.new("Frame")
+    toast.Size = UDim2.new(1, 0, 0, 36)
+    toast.Position = UDim2.new(0, 0, 1, 0)
+    toast.BackgroundColor3 = Color3.fromRGB(25, 20, 30)
+    toast.BackgroundTransparency = 0.15
+    toast.BorderSizePixel = 0
+    toast.Parent = toastContainer
+    createCorner(toast, 8)
+    createStroke(toast, color or Color3.fromRGB(140, 100, 200), 1.5)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -16, 1, 0)
+    label.Position = UDim2.new(0, 8, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = tostring(message)
+    label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
+    label.TextSize = 13
+    label.Font = Enum.Font.GothamBold
+    label.Parent = toast
+
+    local tweenIn = TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Position = UDim2.new(0, 0, 0.4, 0)
+    })
+    tweenIn:Play()
+
+    task.delay(2.6, function()
+        if toast.Parent then
+            local tweenOut = TweenService:Create(toast, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Position = UDim2.new(0, 0, 1.2, 0),
+                BackgroundTransparency = 1,
+            })
+            tweenOut:Play()
+            tweenOut.Completed:Connect(function()
+                toast:Destroy()
+            end)
+        end
+    end)
+end
+
+return UIController
+n=== FILE: C:\Games\Roblox_game_gua\RUN CHAOS TROLL\default.project.json ===n{
+  "name": "HauntedManorTycoon",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$path": "src/ReplicatedStorage"
+    },
+    "ServerScriptService": {
+      "$path": "src/ServerScriptService"
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    },
+    "StarterGui": {
+      "$path": "src/StarterGui"
+    }
+  }
+}
+
+

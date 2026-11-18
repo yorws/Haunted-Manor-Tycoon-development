@@ -2,7 +2,7 @@
 --[[
     WorldService.luau
     Builds the Central Market Hub at the center of the map (0, 1, 0).
-    Surrounded closely by all 6 player plots (Hexagonal layout, radius 105 studs).
+    Surrounded closely by all 6 player plots (Hexagonal layout).
     Includes stone pathways connecting the Market Hub directly to every plot entrance!
 ]]
 
@@ -17,8 +17,9 @@ local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 local WorldService = {}
 
 local ShopService: any
+local shopZoneDebounce: { [number]: number } = {}
 
-local HUB_CENTER = Vector3.new(0, 1, 0) -- Middle of the entire map
+local HUB_CENTER = Vector3.new(0, 1, 0)
 
 local function createPart(props: { [string]: any }): Part
     local part = Instance.new("Part")
@@ -37,8 +38,7 @@ local function buildMarketHub(): Model
     hubModel.Name = "MarketHub"
     hubModel.Parent = Workspace
 
-    -- Main circular stone platform (40 stud radius)
-    local platform = createPart({
+    createPart({
         Size = Vector3.new(65, 2, 65),
         CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -0.9, 0)),
         Material = Enum.Material.Cobblestone,
@@ -47,7 +47,6 @@ local function buildMarketHub(): Model
         Parent = hubModel,
     })
 
-    -- Outer decorative ring
     createPart({
         Size = Vector3.new(78, 1, 78),
         CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, -1.4, 0)),
@@ -57,7 +56,6 @@ local function buildMarketHub(): Model
         Parent = hubModel,
     })
 
-    -- Central Obelisk (landmark/waypoint pillar)
     local obelisk = createPart({
         Size = Vector3.new(3, 22, 3),
         CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 11, 0)),
@@ -81,7 +79,6 @@ local function buildMarketHub(): Model
     crystalLight.Brightness = 3
     crystalLight.Parent = crystal
 
-    -- Obelisk sign billboard
     local obeliskGui = Instance.new("BillboardGui")
     obeliskGui.Name = "HubSign"
     obeliskGui.Size = UDim2.new(10, 0, 2, 0)
@@ -99,12 +96,11 @@ local function buildMarketHub(): Model
     hubTitle.Font = Enum.Font.GothamBlack
     hubTitle.Parent = obeliskGui
 
-    -- 6 Stone Walkways radiating directly from the Market Hub to each of the 6 plots
     local NUM_PLOTS = BalanceConfig.General.MaxPlots or 6
     local PLOT_RADIUS = BalanceConfig.General.PlotRadius or 145
     for i = 1, NUM_PLOTS do
         local angle = ((i - 1) * (2 * math.pi / NUM_PLOTS))
-        local targetX = math.sin(angle) * (PLOT_RADIUS - 42) -- Reaches front entrance gate of plot
+        local targetX = math.sin(angle) * (PLOT_RADIUS - 42)
         local targetZ = math.cos(angle) * (PLOT_RADIUS - 42)
         local targetPos = Vector3.new(targetX, 0.5, targetZ)
 
@@ -120,7 +116,6 @@ local function buildMarketHub(): Model
             Parent = hubModel,
         })
 
-        -- Road lanterns aligned symmetrically along the cobblestone edges
         for _, side in ipairs({ -5.5, 5.5 }) do
             local lanternPost = createPart({
                 Size = Vector3.new(1.2, 5, 1.2),
@@ -146,8 +141,7 @@ local function buildMarketHub(): Model
         end
     end
 
-    -- === LOOT SHOP STALL (Facing players entering from plots) ===
-    local shopStall = createPart({
+    createPart({
         Size = Vector3.new(16, 1, 10),
         CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 6.5, 18)),
         Material = Enum.Material.WoodPlanks,
@@ -185,7 +179,7 @@ local function buildMarketHub(): Model
     shopSignLabel.Name = "ShopSignLabel"
     shopSignLabel.Size = UDim2.new(1, 0, 1, 0)
     shopSignLabel.BackgroundTransparency = 1
-    shopSignLabel.Text = "🏪 LOOT SHOP\n[Press E to Sell Monster Loot]"
+    shopSignLabel.Text = "🏪 LOOT SHOP\n[Press E or Step to Sell Loot]"
     shopSignLabel.TextColor3 = Color3.fromRGB(100, 255, 130)
     shopSignLabel.TextStrokeTransparency = 0
     shopSignLabel.TextSize = 15
@@ -198,7 +192,6 @@ local function buildMarketHub(): Model
     shopLight.Brightness = 1.8
     shopLight.Parent = shopCounter
 
-    -- Native Roblox ProximityPrompt for Old Grimwald Loot Shop
     local shopPrompt = Instance.new("ProximityPrompt")
     shopPrompt.Name = "ShopPrompt"
     shopPrompt.ActionText = "Jual Semua Loot"
@@ -219,8 +212,7 @@ local function buildMarketHub(): Model
         end
     end)
 
-    -- Shopkeeper NPC dummy
-    local keeperBody = createPart({
+    createPart({
         Size = Vector3.new(2, 3, 1.5),
         CFrame = CFrame.new(HUB_CENTER + Vector3.new(0, 2.5, 12)),
         Material = Enum.Material.SmoothPlastic,
@@ -264,7 +256,6 @@ local function buildMarketHub(): Model
     keeperLabel.Font = Enum.Font.GothamBold
     keeperLabel.Parent = keeperGui
 
-    -- Future reserved stalls with signs
     local comingSoonPositions = {
         { pos = Vector3.new(0, 2, -18), label = "⚗️ CRAFTING\n(Coming Soon)" },
         { pos = Vector3.new(18, 2, 0),  label = "🔁 TRADING\n(Coming Soon)" },
@@ -305,16 +296,26 @@ function WorldService.Init(shopServiceRef: any)
     if existing then existing:Destroy() end
     local hubModel = buildMarketHub()
 
+    -- FIXED: Added debounce to prevent notification spam when standing on ShopZone
     local shopZone = hubModel:FindFirstChild("ShopZone") :: BasePart?
     if shopZone then
         shopZone.Touched:Connect(function(hit)
             local character = hit.Parent
             local player = Players:GetPlayerFromCharacter(character)
             if player and ShopService and ShopService.SellAllInventory then
+                local now = os.clock()
+                if (now - (shopZoneDebounce[player.UserId] or 0)) < 1.5 then
+                    return
+                end
+                shopZoneDebounce[player.UserId] = now
                 ShopService.SellAllInventory(player)
             end
         end)
     end
+
+    Players.PlayerRemoving:Connect(function(player)
+        shopZoneDebounce[player.UserId] = nil
+    end)
 
     task.spawn(function()
         local crystalPart = hubModel:FindFirstChild("ObeliskCrystal") :: BasePart?

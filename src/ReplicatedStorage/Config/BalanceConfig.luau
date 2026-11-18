@@ -1,193 +1,92 @@
 --!strict
 --[[
     BalanceConfig.luau
-    Central balance numbers, costs, stats, audio IDs, monster drops,
-    and Manor Core 20-level progression data for Haunted Manor Tycoon.
+    Centralized tuning values for Wave Survival Monster Hunting, Core Levels, and Loot drops.
 ]]
 
 local BalanceConfig = {}
 
 BalanceConfig.General = {
-    MaxPlots = 6,
-    PlotRadius = 145,             -- Distance from Central Market Hub (0, 1, 0) to plot centers (clean 27+ stud gap, no overlap)
-    PlotSize = Vector3.new(86, 2, 86), -- Dimensions of each plot base
-    StarterCoins = 50,
+    StartingCoins = 100,
+    StartingSouls = 0,
+    StarterCoins = 100,
     StarterSouls = 0,
+    MaxPlots = 6,
+    PlotRadius = 145,
+    PlotSize = Vector3.new(86, 2, 86),
+    AutoSaveInterval = 60,
     AutosaveInterval = 60,
     MaxSaveRetries = 3,
-    DataStoreKey = "HauntedManor_UserData_v1",
+    DataStoreKey = "HauntedManorSurvival_v1",
 }
 
 BalanceConfig.Core = {
     BaseMaxHealth = 500,
-    RegenAmount = 25,             -- Amount of HP healed per tick
-    RegenTickInterval = 2.5,      -- Seconds between heal pulses
-    OutOfCombatCooldown = 6,      -- Seconds without damage before healing starts
-    DefeatRecoveryDuration = 20,
+    OutOfCombatCooldown = 6,
+    RegenTickInterval = 2.5,
+    DefeatRecoveryDuration = 5,
 }
 
 BalanceConfig.CoreLevels = {
     MaxLevel = 20,
-    -- Cost formula: starts at 100, scales steeply per level
-    -- Lv1->2: 100, Lv2->3: 250, Lv3->4: 450, Lv5->6: 1050, Lv9->10: 3250, Lv10->11: 4000, Lv19->20: 18100
-    GetUpgradeCost = function(currentLevel: number): number
-        -- Base 100, then quadratic: 100 + (level^2 * 25) + (level * 75)
-        return math.floor(100 + (currentLevel * currentLevel * 25) + (currentLevel * 75))
-    end,
     GetMaxHp = function(level: number): number
-        return 500 + ((level - 1) * 200) -- Lvl 1: 500, Lvl 10: 2300, Lvl 20: 4300
+        return 500 + ((level - 1) * 200)
     end,
-    -- Scales Manor Core health regeneration per tick with core upgrades
     GetRegenAmount = function(level: number): number
-        -- Lvl 1: 25 HP / tick, Lvl 5: 45, Lvl 10: 70, Lvl 15: 95, Lvl 20: 120 HP / tick
-        return math.floor(25 + ((level - 1) * 5))
+        return 25 + ((level - 1) * 15)
     end,
-    -- Monster Coin Drop formula: scales directly with wave progression
-    -- Higher waves yield substantially more coins per monster!
+    GetUpgradeCost = function(currentLevel: number): number
+        return math.floor(150 * (1.42 ^ (currentLevel - 1)))
+    end,
+    GetWeaponDamageMultiplier = function(level: number): number
+        return 1 + ((level - 1) * 0.15)
+    end,
     GetMonsterCoinDrop = function(monsterType: string, waveNumber: number): number
-        local base = 8
-        if monsterType == "Zombie" then
-            base = 16
-        elseif monsterType == "Wraith" then
-            base = 30
-        end
-        local waveBonus = waveNumber * 4
-        return math.floor(base + waveBonus + math.random(1, 4))
+        local base = if monsterType == "Wraith" then 35 elseif monsterType == "Zombie" then 18 else 10
+        return math.floor(base + (waveNumber * 2.5))
     end,
-    -- Proximity radius for E-key interaction (studs from ManorCore)
-    UpgradeInteractRadius = 14,
     Skills = {
         Level10 = {
-            Name = "Spectral Retaliation",
-            Description = "When Core HP drops below 50%, immediately zaps up to 10 nearest monsters!",
+            Range = 45,
             TargetCount = 10,
             Damage = 175,
-            Range = 85,
             Cooldown = 35,
         },
         Level20 = {
-            Name = "Ghost Cloak",
-            Description = "When Core HP drops below 35%, the Manor Core phases out and becomes completely invulnerable for 5 seconds!",
             Duration = 5,
             Cooldown = 50,
         },
     },
 }
 
-BalanceConfig.MonsterDrops = {
-    Ghost = {
-        ItemId = "Ectoplasm",
-        DisplayName = "Ectoplasm",
-        SellPrice = 18,
-        Color = Color3.fromRGB(120, 240, 255),
-    },
-    Zombie = {
-        ItemId = "ZombieBone",
-        DisplayName = "Zombie Bone",
-        SellPrice = 35,
-        Color = Color3.fromRGB(225, 220, 200),
-    },
-    Wraith = {
-        ItemId = "DarkEssence",
-        DisplayName = "Dark Essence",
-        SellPrice = 75,
-        Color = Color3.fromRGB(170, 60, 245),
-    },
+BalanceConfig.Waves = {
+    AutoWaveInterval = 45,
+    RewardBaseCoins = 90,
+    RewardCoinsPerWave = 60,
+    RewardBaseSouls = 8,
+    RewardSoulsPerWave = 4,
+    GetWaveRewardCoins = function(waveNumber: number): number
+        local w = math.max(1, waveNumber)
+        return math.floor(90 + (60 * (w ^ 1.35)))
+    end,
+    GetWaveRewardSouls = function(waveNumber: number): number
+        local w = math.max(1, waveNumber)
+        return math.floor(8 + (4 * w))
+    end,
 }
 
-BalanceConfig.Upgrades = {
-    {
-        Id = "Foyer",
-        DisplayName = "Manor Foyer",
-        Cost = 25,
-        Currency = "Coins",
-        Requires = nil,
-        IncomePerVisitor = 8,
-        VisitorIntervalBonus = 0.5,
-        Description = "The grand, creaky manor entryway with flickering candle chandeliers.",
-        Color = Color3.fromRGB(140, 95, 55),
-        PadPosition = Vector3.new(0, 0.5, 18),
-    },
-    {
-        Id = "GraveyardGarden",
-        DisplayName = "Graveyard Garden",
-        Cost = 85,
-        Currency = "Coins",
-        Requires = "Foyer",
-        IncomePerVisitor = 16,
-        VisitorIntervalBonus = 0.8,
-        Description = "Ancient crooked gravestones and swirling cemetery fog.",
-        Color = Color3.fromRGB(65, 85, 65),
-        PadPosition = Vector3.new(-28, 0.5, 10),
-    },
-    {
-        Id = "CryptChamber",
-        DisplayName = "Crypt Chamber",
-        Cost = 220,
-        Currency = "Coins",
-        Requires = "GraveyardGarden",
-        IncomePerVisitor = 32,
-        VisitorIntervalBonus = 1.2,
-        Description = "Chilled stone tomb housing a cursed royal sarcophagus.",
-        Color = Color3.fromRGB(80, 80, 95),
-        PadPosition = Vector3.new(28, 0.5, 10),
-    },
-    {
-        Id = "HauntedLibrary",
-        DisplayName = "Haunted Library",
-        Cost = 550,
-        Currency = "Coins",
-        Requires = "CryptChamber",
-        IncomePerVisitor = 65,
-        VisitorIntervalBonus = 1.6,
-        Description = "Cobwebbed shelves of occult tomes with levitating books.",
-        Color = Color3.fromRGB(110, 55, 75),
-        PadPosition = Vector3.new(-25, 0.5, -20),
-    },
-    {
-        Id = "SeanceParlor",
-        DisplayName = "Séance Parlor",
-        Cost = 1200,
-        Currency = "Coins",
-        Requires = "HauntedLibrary",
-        IncomePerVisitor = 130,
-        VisitorIntervalBonus = 2.2,
-        Description = "Summoning circle with an unearthly floating crystal orb.",
-        Color = Color3.fromRGB(130, 45, 150),
-        PadPosition = Vector3.new(25, 0.5, -20),
-    },
-    {
-        Id = "GargoyleSentry",
-        DisplayName = "Gargoyle Sentry",
-        Cost = 20,
-        Currency = "Souls",
-        Requires = "GraveyardGarden",
-        DefenseType = "Turret",
-        TurretRange = 45,
-        TurretDamage = 25,
-        TurretCooldown = 1.5,
-        Description = "Stone guardian that shoots crackling spectral bolts at encroaching monsters.",
-        Color = Color3.fromRGB(200, 110, 25),
-        PadPosition = Vector3.new(-38, 0.5, 28),
-    },
-    {
-        Id = "HolyAltar",
-        DisplayName = "Holy Relic Altar",
-        Cost = 45,
-        Currency = "Souls",
-        Requires = "SeanceParlor",
-        DefenseType = "Sanctuary",
-        CoreHpBonus = 500,
-        WeaponDamageMultiplier = 1.5,
-        Description = "Infuses the Manor Core with +500 Max HP and amplifies Holy Lantern damage by 50%.",
-        Color = Color3.fromRGB(250, 220, 85),
-        PadPosition = Vector3.new(38, 0.5, 28),
-    },
+BalanceConfig.Weapon = {
+    Name = "Holy Lantern",
+    BaseDamage = 35,
+    Range = 36,
+    Cooldown = 0.55,
+    LightColor = Color3.fromRGB(255, 230, 140),
+    SoundId = "rbxassetid://130113322",
 }
 
 BalanceConfig.Monsters = {
     Ghost = {
-        DisplayName = "Restless Ghost",
+        DisplayName = "👻 Restless Ghost",
         WalkSpeed = 21,
         MaxHealth = 50,
         Damage = 10,
@@ -207,7 +106,7 @@ BalanceConfig.Monsters = {
         },
     },
     Zombie = {
-        DisplayName = "Grave Zombie",
+        DisplayName = "🧟 Grave Zombie",
         WalkSpeed = 9,
         MaxHealth = 175,
         Damage = 22,
@@ -227,7 +126,7 @@ BalanceConfig.Monsters = {
         },
     },
     Wraith = {
-        DisplayName = "Shadow Wraith",
+        DisplayName = "👿 Shadow Wraith",
         WalkSpeed = 13,
         MaxHealth = 95,
         Damage = 16,
@@ -248,31 +147,48 @@ BalanceConfig.Monsters = {
     },
 }
 
-BalanceConfig.Waves = {
-    AutoWaveInterval = 120,
-    RewardBaseCoins = 80,
-    RewardCoinsPerWave = 35,
-    RewardBaseSouls = 5,
-    RewardSoulsPerWave = 2,
-    MaxWaveCapacity = 25,
+BalanceConfig.Upgrades = {}
+
+BalanceConfig.MonsterDrops = {
+    Ghost = {
+        ItemId = "Ectoplasm",
+        DisplayName = "💧 Ectoplasm",
+        SellPrice = 20,
+        Color = Color3.fromRGB(110, 235, 255),
+    },
+    Zombie = {
+        ItemId = "RottingBone",
+        DisplayName = "🦴 Cursed Bone",
+        SellPrice = 45,
+        Color = Color3.fromRGB(220, 210, 185),
+    },
+    Wraith = {
+        ItemId = "WraithEssence",
+        DisplayName = "🔮 Wraith Essence",
+        SellPrice = 110,
+        Color = Color3.fromRGB(190, 80, 255),
+    },
 }
 
-BalanceConfig.Weapon = {
-    Name = "Holy Lantern",
-    BaseDamage = 35,
-    Range = 36,
-    Cooldown = 0.45,
-    BeamWidth = 1.2,
-    LightColor = Color3.fromRGB(255, 240, 160),
-    FireSound = "rbxassetid://115842676995967",
-}
-
-BalanceConfig.Visitors = {
-    BaseSpawnInterval = 6,
-    MinSpawnInterval = 2.5,
-    MaxVisitorsPerPlot = 6,
-    MaxPlotCapacityWithRooms = 12,
-    VisitDuration = 8,
+BalanceConfig.Items = {
+    Ectoplasm = {
+        DisplayName = "💧 Ectoplasm",
+        SellCoins = 20,
+        DropChance = 0.65,
+        Color = Color3.fromRGB(110, 235, 255),
+    },
+    RottingBone = {
+        DisplayName = "🦴 Cursed Bone",
+        SellCoins = 45,
+        DropChance = 0.55,
+        Color = Color3.fromRGB(220, 210, 185),
+    },
+    WraithEssence = {
+        DisplayName = "🔮 Wraith Essence",
+        SellCoins = 110,
+        DropChance = 0.50,
+        Color = Color3.fromRGB(190, 80, 255),
+    },
 }
 
 return BalanceConfig

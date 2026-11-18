@@ -2,24 +2,19 @@
 --[[
     CombatService.luau
     Equips players with the Holy Lantern weapon tool and validates all attacks server-side
-    (rate-limiting, distance checks, line-of-sight, Holy Altar damage buffs).
+    (rate-limiting, distance checks, ownership checks, Core Level damage scaling).
 ]]
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 
 local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 local Network = require(ReplicatedStorage.Modules.Network)
-local Types = require(ReplicatedStorage.Modules.Types)
 
 local CombatService = {}
 
 local lastAttackTimes: { [number]: number } = {}
-
 local DataService: any
 
--- Constructs the physical Holy Lantern Tool
 local function createLanternTool(): Tool
     local tool = Instance.new("Tool")
     tool.Name = BalanceConfig.Weapon.Name
@@ -35,7 +30,6 @@ local function createLanternTool(): Tool
     handle.CanCollide = false
     handle.Parent = tool
 
-    -- Glowing Lantern Core
     local glass = Instance.new("Part")
     glass.Name = "LanternGlass"
     glass.Size = Vector3.new(0.8, 1.2, 0.8)
@@ -93,27 +87,28 @@ function CombatService.HandleAttack(player: Player, targetMonster: any)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     if not humanoid or humanoid.Health <= 0 then return end
 
-    -- Check if tool is equipped
     local equippedTool = character:FindFirstChild(BalanceConfig.Weapon.Name)
     if not equippedTool then return end
 
-    -- Cooldown check
     local now = os.clock()
     local lastTime = lastAttackTimes[player.UserId] or 0
     if (now - lastTime) < (BalanceConfig.Weapon.Cooldown - 0.05) then
-        return -- Attack throttled
+        return
     end
     lastAttackTimes[player.UserId] = now
 
     local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart
     local handle = equippedTool:FindFirstChild("Handle") :: BasePart? or hrp
 
-    -- Validate target
     if typeof(targetMonster) ~= "Instance" or not targetMonster:IsA("Model") then
-        -- Missed shot, still broadcast visual beam forward
         local forwardPos = hrp.Position + (hrp.CFrame.LookVector * BalanceConfig.Weapon.Range)
         local combatVisual = Network.GetEvent("CombatVisual")
         combatVisual:FireAllClients(handle.Position, forwardPos, false)
+        return
+    end
+
+    local ownerId = targetMonster:GetAttribute("OwnerUserId")
+    if ownerId ~= nil and ownerId ~= player.UserId then
         return
     end
 
@@ -124,23 +119,22 @@ function CombatService.HandleAttack(player: Player, targetMonster: any)
         return
     end
 
-    -- Distance validation
     local dist = (hrp.Position - targetRoot.Position).Magnitude
     if dist > (BalanceConfig.Weapon.Range + 6) then
-        return -- Out of range exploit blocked
+        return
     end
 
-    -- Calculate damage
-    local damage = BalanceConfig.Weapon.BaseDamage
+    local coreLevel = 1
     local data = DataService.GetData(player)
-    if data and data.UnlockedUpgrades["HolyAltar"] then
-        damage = math.floor(damage * 1.5)
+    if data and data.CoreLevel then
+        coreLevel = data.CoreLevel
     end
 
-    -- Apply damage
+    local multiplier = BalanceConfig.CoreLevels.GetWeaponDamageMultiplier(coreLevel)
+    local damage = math.floor(BalanceConfig.Weapon.BaseDamage * multiplier)
+
     targetHum:TakeDamage(damage)
 
-    -- Replicate holy beam visual to all players
     local combatVisual = Network.GetEvent("CombatVisual")
     combatVisual:FireAllClients(handle.Position, targetRoot.Position, true)
 end
@@ -150,4 +144,3 @@ function CombatService.ClearPlayer(player: Player)
 end
 
 return CombatService
-

@@ -1,8 +1,7 @@
 --!strict
 --[[
     ServerMain.server.luau
-    Root server-side bootstrap script for Haunted Manor Tycoon.
-    Orchestrates service initialization, player lifecycle, and authoritative handlers.
+    Bootstraps all backend services safely and guarantees plot assignment & spawn teleport.
 ]]
 
 local Players = game:GetService("Players")
@@ -10,113 +9,103 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Network = require(ReplicatedStorage.Modules.Network)
-local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
+if Network.InitServer then
+    Network.InitServer()
+end
 
 local Services = ServerScriptService:WaitForChild("Services")
 local DataService = require(Services:WaitForChild("DataService"))
 local EconomyService = require(Services:WaitForChild("EconomyService"))
-local ItemDropService = require(Services:WaitForChild("ItemDropService"))
 local ShopService = require(Services:WaitForChild("ShopService"))
-local WorldService = require(Services:WaitForChild("WorldService"))
 local PlotService = require(Services:WaitForChild("PlotService"))
-local VisitorService = require(Services:WaitForChild("VisitorService"))
+local ItemDropService = require(Services:WaitForChild("ItemDropService"))
 local MonsterService = require(Services:WaitForChild("MonsterService"))
 local CombatService = require(Services:WaitForChild("CombatService"))
-local MonetizationService = require(Services:WaitForChild("MonetizationService"))
+local WorldService = require(Services:WaitForChild("WorldService"))
 
-print("========================================")
-print("  Initializing Haunted Manor Tycoon...  ")
-print("========================================")
+if DataService.Init then DataService.Init() end
+if EconomyService.Init then EconomyService.Init(DataService) end
+if ShopService.Init then ShopService.Init(DataService, EconomyService, PlotService, MonsterService) end
+if PlotService.Init then PlotService.Init(DataService, EconomyService, ShopService) end
+if ItemDropService.Init then ItemDropService.Init(DataService, EconomyService) end
+if MonsterService.Init then MonsterService.Init(DataService, EconomyService, PlotService, ItemDropService, ShopService) end
+if CombatService.Init then CombatService.Init(DataService) end
+if WorldService.Init then WorldService.Init(ShopService) end
 
-Network.InitServer()
-
-EconomyService.Init(DataService)
-ItemDropService.Init(DataService, EconomyService)
-ShopService.Init(DataService, EconomyService, PlotService, MonsterService)
-WorldService.Init(ShopService)
-PlotService.Init(DataService, EconomyService, ShopService)
-VisitorService.Init(DataService, EconomyService, PlotService)
-MonsterService.Init(DataService, EconomyService, PlotService, ItemDropService, ShopService)
-CombatService.Init(DataService)
-MonetizationService.Init(DataService, EconomyService)
-
-local getPlayerDataFn = Network.GetFunction("GetPlayerData")
-getPlayerDataFn.OnServerInvoke = function(player: Player)
+local GetPlayerDataFn = Network.GetFunction("GetPlayerData")
+GetPlayerDataFn.OnServerInvoke = function(player: Player)
     return DataService.GetData(player)
 end
 
-local processedPlayers: { [number]: boolean } = {}
+local function teleportCharacterToPlot(player: Player, character: Model, plotModel: Model)
+    local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart?
+    local hrp = character:WaitForChild("HumanoidRootPart", 5) :: BasePart?
+    if not plotBase or not hrp then return end
 
-local function handleNewPlayer(player: Player)
-    if processedPlayers[player.UserId] then
-        return
+    local spawnPos = (plotBase.CFrame * CFrame.new(0, 5, -10)).Position
+    local lookTarget = (plotBase.CFrame * CFrame.new(0, 5, 28)).Position
+    local targetCF = CFrame.lookAt(spawnPos, lookTarget)
+
+    character:PivotTo(targetCF)
+    task.wait(0.15)
+    if character.Parent and hrp.Parent then
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        character:PivotTo(targetCF)
     end
-    processedPlayers[player.UserId] = true
+end
 
-    print(string.format("[ServerMain] Player joined: %s (%d)", player.Name, player.UserId))
-    
-    DataService.LoadData(player)
-    MonetizationService.CheckPlayerPasses(player)
-    
-    local plot = PlotService.AssignPlot(player)
-    if plot then
-        MonsterService.InitPlotWave(player, plot)
-    end
-
+local function onPlayerAdded(player: Player)
     local function onCharacterAdded(character: Model)
-        CombatService.GiveWeapon(player)
-
-        task.spawn(function()
-            local assignedPlot = PlotService.GetPlayerPlot(player) or plot
-            if not assignedPlot then
-                assignedPlot = PlotService.AssignPlot(player)
-            end
-            if assignedPlot then
-                local spawnPart = assignedPlot:FindFirstChild("PlotSpawn") :: BasePart?
-                local manorCore = assignedPlot:FindFirstChild("ManorCore") :: BasePart?
-                for _ = 1, 30 do
-                    local hrp = character:FindFirstChild("HumanoidRootPart") :: BasePart?
-                    if hrp and manorCore then
-                        character:PivotTo(manorCore.CFrame * CFrame.new(0, 3, 14))
-                        break
-                    elseif hrp and spawnPart then
-                        character:PivotTo(spawnPart.CFrame + Vector3.new(0, 3.5, 0))
-                        break
-                    end
-                    task.wait(0.1)
-                end
-            end
-        end)
+        if CombatService.GiveWeapon then
+            CombatService.GiveWeapon(player)
+        end
+        local assignedPlot = PlotService.GetPlayerPlot(player)
+        if assignedPlot then
+            teleportCharacterToPlot(player, character, assignedPlot)
+        end
     end
 
-    if player.Character then
-        task.spawn(onCharacterAdded, player.Character)
-    end
     player.CharacterAdded:Connect(onCharacterAdded)
 
-    EconomyService.SyncClient(player)
+    if DataService.LoadData then
+        pcall(function() DataService.LoadData(player) end)
+    end
+
+    local plotModel = PlotService.AssignPlot(player)
+    if plotModel then
+        local plotSpawn = plotModel:FindFirstChild("PlotSpawn") :: SpawnLocation?
+        if plotSpawn then
+            player.RespawnLocation = plotSpawn
+        end
+
+        if MonsterService.InitPlotWave then
+            MonsterService.InitPlotWave(player, plotModel)
+        end
+
+        if player.Character then
+            task.spawn(teleportCharacterToPlot, player, player.Character, plotModel)
+            if CombatService.GiveWeapon then
+                CombatService.GiveWeapon(player)
+            end
+        end
+    end
+
+    if EconomyService.SyncClient then
+        EconomyService.SyncClient(player)
+    end
 end
 
 local function onPlayerRemoving(player: Player)
-    processedPlayers[player.UserId] = nil
-    VisitorService.ClearPlayerVisitors(player)
-    MonsterService.ClearPlayerWave(player)
-    local plot = PlotService.GetPlayerPlot(player)
-    if plot then
-        ShopService.ClearPlot(plot)
-    end
-    PlotService.ReleasePlot(player)
-    CombatService.ClearPlayer(player)
-    EconomyService.ClearPlayer(player)
-    DataService.ReleaseSession(player)
+    if MonsterService.ClearPlayerWave then MonsterService.ClearPlayerWave(player) end
+    if CombatService.ClearPlayer then CombatService.ClearPlayer(player) end
+    if EconomyService.ClearPlayer then EconomyService.ClearPlayer(player) end
+    if PlotService.ReleasePlot then PlotService.ReleasePlot(player) end
+    if DataService.ReleaseSession then DataService.ReleaseSession(player) end
 end
 
-Players.PlayerAdded:Connect(handleNewPlayer)
+Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
-for _, p in ipairs(Players:GetPlayers()) do
-    task.spawn(handleNewPlayer, p)
+for _, existingPlayer in ipairs(Players:GetPlayers()) do
+    task.spawn(onPlayerAdded, existingPlayer)
 end
-
-DataService.StartAutosave()
-print("[ServerMain] Haunted Manor Tycoon server ready!")

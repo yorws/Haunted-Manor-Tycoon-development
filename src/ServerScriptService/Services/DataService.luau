@@ -8,7 +8,6 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 local Types = require(ReplicatedStorage.Modules.Types)
@@ -26,7 +25,6 @@ local function initDataStore()
 
     if success and ds then
         dataStore = ds
-        -- Test read to verify API access
         local testSuccess = pcall(function()
             ds:GetAsync("__ping__")
         end)
@@ -57,15 +55,6 @@ local function createDefaultData(): Types.PlayerData
     }
 end
 
-local function deepCopy(t: any): any
-    if type(t) ~= "table" then return t end
-    local copy = {}
-    for k, v in pairs(t) do
-        copy[k] = deepCopy(v)
-    end
-    return copy
-end
-
 function DataService.LoadData(player: Player): Types.PlayerData
     local userId = player.UserId
     local key = "Player_" .. tostring(userId)
@@ -92,13 +81,15 @@ function DataService.LoadData(player: Player): Types.PlayerData
     if not loadedData then
         loadedData = createDefaultData()
     else
-        -- Ensure all schema fields exist
         local default = createDefaultData()
         for k, v in pairs(default) do
             if (loadedData :: any)[k] == nil then
                 (loadedData :: any)[k] = v
             end
         end
+        -- Reset pass flags so MonetizationService verifies live ownership on join
+        loadedData.HasDoubleCoins = false
+        loadedData.HasVip = false
     end
 
     sessionData[userId] = loadedData
@@ -113,7 +104,7 @@ function DataService.SaveData(player: Player): boolean
     data.LastSaveTimestamp = os.time()
 
     if not isDataStoreAvailable or not dataStore then
-        return true -- Mock success in Studio
+        return true
     end
 
     local key = "Player_" .. tostring(userId)
@@ -162,7 +153,6 @@ function DataService.StartAutosave()
     end)
 end
 
--- BindToClose hook to save remaining players
 game:BindToClose(function()
     print("[DataService] Server closing, saving all active players...")
     for _, player in ipairs(Players:GetPlayers()) do
@@ -172,4 +162,3 @@ game:BindToClose(function()
 end)
 
 return DataService
-

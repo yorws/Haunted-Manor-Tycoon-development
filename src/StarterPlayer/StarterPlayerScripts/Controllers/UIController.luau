@@ -3,7 +3,7 @@
     UIController.luau
     Creates and drives the complete touch-friendly ScreenGui HUD:
     - Currency Display (Coins 🪙 & Souls 👻)
-    - Manor Core Health Bar
+    - Manor Core Health Bar & Ghost Cloak indicator
     - Wave Defense Status & Summon Button 🔔
     - Notification Toasts (animated purchase/alert cards)
 ]]
@@ -12,8 +12,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local Network = require(ReplicatedStorage.Modules.Network)
-local Types = require(ReplicatedStorage.Modules.Types)
+local Modules = ReplicatedStorage:WaitForChild("Modules", 15)
+ReplicatedStorage:WaitForChild("Remotes", 15)
+
+local Network = require(Modules:WaitForChild("Network"))
+local Types = require(Modules:WaitForChild("Types"))
 
 local UIController = {}
 
@@ -45,14 +48,13 @@ local function createStroke(parent: GuiObject, color: Color3, thickness: number)
 end
 
 function UIController.Init()
-    -- Create ScreenGui
     screenGui = Instance.new("ScreenGui")
     screenGui.Name = "HauntedManorGui"
     screenGui.ResetOnSpawn = false
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.Parent = playerGui
 
-    -- 1. Top HUD Bar (Currencies & Plot)
+    -- 1. Top HUD Bar
     local topBar = Instance.new("Frame")
     topBar.Name = "TopBar"
     topBar.Size = UDim2.new(0, 560, 0, 52)
@@ -79,7 +81,7 @@ function UIController.Init()
     coinsLabel.Size = UDim2.new(1, -8, 1, 0)
     coinsLabel.Position = UDim2.new(0, 6, 0, 0)
     coinsLabel.BackgroundTransparency = 1
-    coinsLabel.Text = "🪙 0"
+    coinsLabel.Text = "🪙 100"
     coinsLabel.TextColor3 = Color3.fromRGB(255, 220, 70)
     coinsLabel.TextSize = 15
     coinsLabel.Font = Enum.Font.GothamBold
@@ -108,7 +110,7 @@ function UIController.Init()
     soulsLabel.TextXAlignment = Enum.TextXAlignment.Left
     soulsLabel.Parent = soulsCard
 
-    -- Inventory Card (Loot for Shop)
+    -- Inventory Card
     local invCard = Instance.new("Frame")
     invCard.Name = "InventoryCard"
     invCard.Size = UDim2.new(0.24, 0, 0.8, 0)
@@ -144,13 +146,13 @@ function UIController.Init()
     plotLabel.Name = "PlotLabel"
     plotLabel.Size = UDim2.new(1, 0, 1, 0)
     plotLabel.BackgroundTransparency = 1
-    plotLabel.Text = "🏰 Plot: --"
+    plotLabel.Text = "🏰 Arena: #1"
     plotLabel.TextColor3 = Color3.fromRGB(220, 200, 240)
     plotLabel.TextSize = 13
     plotLabel.Font = Enum.Font.GothamMedium
     plotLabel.Parent = plotCard
 
-    -- 2. Wave & Manor Core Defense HUD (Top-Center / Left)
+    -- 2. Wave & Manor Core Defense HUD (Kiri Atas)
     local defensePanel = Instance.new("Frame")
     defensePanel.Name = "DefensePanel"
     defensePanel.Size = UDim2.new(0, 320, 0, 100)
@@ -162,20 +164,18 @@ function UIController.Init()
     createCorner(defensePanel, 12)
     createStroke(defensePanel, Color3.fromRGB(120, 60, 160), 1.5)
 
-    -- Core Health Bar Title & Label
     coreHpLabel = Instance.new("TextLabel")
     coreHpLabel.Name = "CoreHpLabel"
     coreHpLabel.Size = UDim2.new(1, -20, 0, 22)
     coreHpLabel.Position = UDim2.new(0, 10, 0, 8)
     coreHpLabel.BackgroundTransparency = 1
-    coreHpLabel.Text = "🔮 Core HP: 500 / 500"
+    coreHpLabel.Text = "🔮 Core [Lv.1] HP: 500 / 500"
     coreHpLabel.TextColor3 = Color3.fromRGB(240, 200, 255)
     coreHpLabel.TextSize = 14
     coreHpLabel.Font = Enum.Font.GothamBold
     coreHpLabel.TextXAlignment = Enum.TextXAlignment.Left
     coreHpLabel.Parent = defensePanel
 
-    -- Health Bar Track
     local coreHpTrack = Instance.new("Frame")
     coreHpTrack.Name = "CoreHpTrack"
     coreHpTrack.Size = UDim2.new(1, -20, 0, 12)
@@ -193,20 +193,18 @@ function UIController.Init()
     coreHpBarFill.Parent = coreHpTrack
     createCorner(coreHpBarFill, 6)
 
-    -- Wave Status Text
     waveStatusLabel = Instance.new("TextLabel")
     waveStatusLabel.Name = "WaveStatusLabel"
     waveStatusLabel.Size = UDim2.new(0.65, 0, 0, 38)
     waveStatusLabel.Position = UDim2.new(0, 10, 0, 52)
     waveStatusLabel.BackgroundTransparency = 1
-    waveStatusLabel.Text = "⏳ Wave 1 in: 120s"
+    waveStatusLabel.Text = "⏳ Wave 1 in: 45s"
     waveStatusLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
     waveStatusLabel.TextSize = 13
     waveStatusLabel.Font = Enum.Font.GothamMedium
     waveStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
     waveStatusLabel.Parent = defensePanel
 
-    -- Quick Summon Wave Button (Touch Friendly)
     summonWaveBtn = Instance.new("TextButton")
     summonWaveBtn.Name = "SummonWaveBtn"
     summonWaveBtn.Size = UDim2.new(0.3, 0, 0, 34)
@@ -224,7 +222,7 @@ function UIController.Init()
         requestWaveFn:InvokeServer()
     end)
 
-    -- 3. Notification Toast Container (Bottom Center)
+    -- 3. Notification Toast Container
     toastContainer = Instance.new("Frame")
     toastContainer.Name = "ToastContainer"
     toastContainer.Size = UDim2.new(0, 380, 0, 120)
@@ -232,7 +230,6 @@ function UIController.Init()
     toastContainer.BackgroundTransparency = 1
     toastContainer.Parent = screenGui
 
-    -- Listen to Network Events
     local updateEvent = Network.GetEvent("PlayerDataUpdated")
     updateEvent.OnClientEvent:Connect(function(data: Types.PlayerData)
         UIController.UpdatePlayerData(data)
@@ -240,7 +237,7 @@ function UIController.Init()
 
     local plotAssignedEvent = Network.GetEvent("PlotAssigned")
     plotAssignedEvent.OnClientEvent:Connect(function(index: number)
-        plotLabel.Text = string.format("🏰 Plot: #%d", index)
+        plotLabel.Text = string.format("🏰 Arena: #%d", tonumber(index) or 1)
     end)
 
     local waveStateEvent = Network.GetEvent("WaveStateUpdated")
@@ -253,25 +250,27 @@ function UIController.Init()
         UIController.ShowToast(msg, color)
     end)
 
-    -- Initial Data Fetch
     task.spawn(function()
         local getPlayerDataFn = Network.GetFunction("GetPlayerData")
-        local data = getPlayerDataFn:InvokeServer() :: Types.PlayerData?
-        if data then
-            UIController.UpdatePlayerData(data)
+        local ok, data = pcall(function()
+            return getPlayerDataFn:InvokeServer()
+        end)
+        if ok and data then
+            UIController.UpdatePlayerData(data :: Types.PlayerData)
         end
     end)
 end
 
 function UIController.UpdatePlayerData(data: Types.PlayerData)
-    coinsLabel.Text = string.format("🪙 %d", data.Coins)
-    soulsLabel.Text = string.format("👻 %d", data.Souls)
+    if not data then return end
+    coinsLabel.Text = string.format("🪙 %d", tonumber(data.Coins) or 0)
+    soulsLabel.Text = string.format("👻 %d", tonumber(data.Souls) or 0)
 
     if invLabel then
         local count = 0
-        if data.Inventory then
+        if type(data.Inventory) == "table" then
             for _, c in pairs(data.Inventory) do
-                count += c
+                count += (tonumber(c) or 0)
             end
         end
         invLabel.Text = string.format("🎒 Loot: %d", count)
@@ -279,24 +278,36 @@ function UIController.UpdatePlayerData(data: Types.PlayerData)
 end
 
 function UIController.UpdateWaveState(state: Types.WaveState)
-    coreHpLabel.Text = string.format("🔮 Core HP: %d / %d", math.floor(state.CoreHealth), math.floor(state.CoreMaxHealth))
-    local pct = math.clamp(state.CoreHealth / state.CoreMaxHealth, 0, 1)
+    if not state then return end
+    local lvl = tonumber(state.CoreLevel) or 1
+    local curHp = tonumber(state.CoreHealth) or 0
+    local maxHp = math.max(1, tonumber(state.CoreMaxHealth) or 500)
+    local pct = math.clamp(curHp / maxHp, 0, 1)
     coreHpBarFill.Size = UDim2.new(pct, 0, 1, 0)
 
-    if pct <= 0.25 then
-        coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 50, 50)
-    elseif pct <= 0.5 then
-        coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 160, 50)
+    if state.IsGhostCloaked then
+        coreHpLabel.Text = string.format("🛡️ GHOST CLOAK ACTIVE! (%d/%d)", math.floor(curHp), math.floor(maxHp))
+        coreHpLabel.TextColor3 = Color3.fromRGB(160, 240, 255)
+        coreHpBarFill.BackgroundColor3 = Color3.fromRGB(120, 230, 255)
     else
-        coreHpBarFill.BackgroundColor3 = Color3.fromRGB(180, 70, 255)
+        coreHpLabel.Text = string.format("🔮 Core [Lv.%d] HP: %d / %d", lvl, math.floor(curHp), math.floor(maxHp))
+        coreHpLabel.TextColor3 = Color3.fromRGB(240, 200, 255)
+        if pct <= 0.25 then
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 50, 50)
+        elseif pct <= 0.5 then
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(240, 160, 50)
+        else
+            coreHpBarFill.BackgroundColor3 = Color3.fromRGB(180, 70, 255)
+        end
     end
 
+    local waveNum = tonumber(state.WaveNumber) or 1
     if state.Status == "Waiting" then
-        waveStatusLabel.Text = string.format("⏳ Wave %d in: %ds", state.WaveNumber, math.max(0, state.TimeRemaining))
+        waveStatusLabel.Text = string.format("⏳ Wave %d in: %ds", waveNum, math.max(0, tonumber(state.TimeRemaining) or 0))
         waveStatusLabel.TextColor3 = Color3.fromRGB(220, 220, 230)
         summonWaveBtn.Visible = true
     elseif state.Status == "Active" then
-        waveStatusLabel.Text = string.format("⚔️ Wave %d: %d Left", state.WaveNumber, state.MonstersRemaining)
+        waveStatusLabel.Text = string.format("⚔️ Wave %d: %d Left", waveNum, tonumber(state.MonstersRemaining) or 0)
         waveStatusLabel.TextColor3 = Color3.fromRGB(255, 90, 90)
         summonWaveBtn.Visible = false
     elseif state.Status == "Victory" then
@@ -325,7 +336,7 @@ function UIController.ShowToast(message: string, color: Color3?)
     label.Size = UDim2.new(1, -16, 1, 0)
     label.Position = UDim2.new(0, 8, 0, 0)
     label.BackgroundTransparency = 1
-    label.Text = message
+    label.Text = tostring(message)
     label.TextColor3 = color or Color3.fromRGB(255, 255, 255)
     label.TextSize = 13
     label.Font = Enum.Font.GothamBold
@@ -351,4 +362,3 @@ function UIController.ShowToast(message: string, color: Color3?)
 end
 
 return UIController
-
