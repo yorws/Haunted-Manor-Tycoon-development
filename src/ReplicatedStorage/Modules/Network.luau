@@ -17,6 +17,7 @@ local REMOTE_FUNCTIONS = {
     "GetPlayerData",
     "RequestSellInventory",
     "RequestCoreLevelUp",
+    "AdminCommand",
 }
 
 local REMOTE_EVENTS = {
@@ -98,4 +99,3 @@ function Network.GetEvent(name: string): RemoteEvent
 end
 
 return Network
-

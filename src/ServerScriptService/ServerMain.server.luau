@@ -22,8 +22,10 @@ local ItemDropService = require(Services:WaitForChild("ItemDropService"))
 local MonsterService = require(Services:WaitForChild("MonsterService"))
 local CombatService = require(Services:WaitForChild("CombatService"))
 local WorldService = require(Services:WaitForChild("WorldService"))
+local AdminService = require(Services:WaitForChild("AdminService"))
 
 if DataService.Init then DataService.Init() end
+if DataService.StartAutosave then DataService.StartAutosave() end
 if EconomyService.Init then EconomyService.Init(DataService) end
 if ShopService.Init then ShopService.Init(DataService, EconomyService, PlotService, MonsterService) end
 if PlotService.Init then PlotService.Init(DataService, EconomyService, ShopService) end
@@ -31,6 +33,7 @@ if ItemDropService.Init then ItemDropService.Init(DataService, EconomyService) e
 if MonsterService.Init then MonsterService.Init(DataService, EconomyService, PlotService, ItemDropService, ShopService) end
 if CombatService.Init then CombatService.Init(DataService) end
 if WorldService.Init then WorldService.Init(ShopService) end
+if AdminService.Init then AdminService.Init(DataService, EconomyService, PlotService, MonsterService, ShopService) end
 
 local GetPlayerDataFn = Network.GetFunction("GetPlayerData")
 GetPlayerDataFn.OnServerInvoke = function(player: Player)

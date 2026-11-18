@@ -1,7 +1,7 @@
 --!strict
 --[[
     MonsterService.luau
-    Manages monster spawning, wave stat scaling, anti-stuck navigation towards the Manor Core,
+    Manages monster spawning, wave stat scaling, climbing altar stairs to reach Manor Core,
     progressive wave coin rewards, sculpted 3D evolving Manor Core architecture (Lv. 1 - 20),
     Core destruction/repair/upgrade animations, and loot drops.
 ]]
@@ -118,7 +118,7 @@ local function getIntactCoreCFrame(plotModel: Model, level: number): (CFrame, Ve
     local scaleBoost = (lvl - 1) * 0.11
     local targetSize = Vector3.new(3.6 + scaleBoost, 5.2 + (scaleBoost * 1.4), 3.6 + scaleBoost)
     if pedestal then
-        local cf = pedestal.CFrame * CFrame.new(0, (pedestal.Size.Y * 0.5) + 4.8 + (scaleBoost * 0.7), 0)
+        local cf = pedestal.CFrame * CFrame.new(0, (pedestal.Size.Y * 0.5) + 4.2 + (scaleBoost * 0.7), 0)
             * CFrame.Angles(math.rad(16), math.rad(45), math.rad(16))
         return cf, targetSize
     end
@@ -145,6 +145,7 @@ end
 function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
     local core = plotModel:FindFirstChild("ManorCore") :: BasePart?
     local pedestal = plotModel:FindFirstChild("CorePedestal") :: BasePart?
+    local plotBase = plotModel:FindFirstChild("PlotBase") :: BasePart?
     if not core or not pedestal then return end
 
     local lvl = math.clamp(level, 1, 20)
@@ -160,15 +161,21 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
     decorFolder.Name = "CoreDecorations"
     decorFolder.Parent = plotModel
 
+    -- Matikan collision kotak pedestal lama supaya tidak menghalangi tangga bundar
     pedestal.Transparency = 1
     pedestal.CanCollide = false
-    local pedBasePos = Vector3.new(pedestal.Position.X, pedestal.Position.Y - (pedestal.Size.Y * 0.5), pedestal.Position.Z)
+    core.CanCollide = false
 
-    -- 1. Altar Melingkar 3 Undakan (Circular Tiered Dais)
+    local floorTopY = if plotBase
+        then (plotBase.Position.Y + (plotBase.Size.Y * 0.5))
+        else (pedestal.Position.Y - (pedestal.Size.Y * 0.5))
+    local pedBasePos = Vector3.new(pedestal.Position.X, floorTopY, pedestal.Position.Z)
+
+    -- 1. Altar Melingkar 3 Undakan Landai (tinggi 0.45 per step agar monster & player mulus naik)
     local daisTiers = {
-        { radius = 15.5 + (lvl * 0.12), height = 0.65, color = theme.stoneColor },
-        { radius = 12.2 + (lvl * 0.10), height = 0.65, color = theme.stoneColor },
-        { radius = 9.0 + (lvl * 0.08), height = 0.75, color = theme.stoneColor },
+        { radius = 15.5 + (lvl * 0.12), height = 0.45, color = theme.stoneColor },
+        { radius = 11.8 + (lvl * 0.10), height = 0.45, color = theme.stoneColor },
+        { radius = 8.2 + (lvl * 0.08), height = 0.45, color = theme.stoneColor },
     }
     local currentY = pedBasePos.Y
     for idx, tier in ipairs(daisTiers) do
@@ -186,7 +193,7 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
         local trimRing = Instance.new("Part")
         trimRing.Name = "AltarTrim_" .. idx
         trimRing.Shape = Enum.PartType.Cylinder
-        trimRing.Size = Vector3.new(0.18, (tier.radius * 2) + 0.35, (tier.radius * 2) + 0.35)
+        trimRing.Size = Vector3.new(0.14, (tier.radius * 2) + 0.3, (tier.radius * 2) + 0.3)
         trimRing.CFrame = CFrame.new(pedBasePos.X, currentY + tier.height, pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
         trimRing.Material = Enum.Material.Neon
         trimRing.Color = if idx == 3 then theme.primaryColor else theme.secondaryColor
@@ -198,22 +205,23 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
         currentY += tier.height
     end
 
+    -- Dudukan Mangkuk Energi di puncak altar
     local chaliceBase = Instance.new("Part")
     chaliceBase.Name = "ChalicePedestal"
     chaliceBase.Shape = Enum.PartType.Cylinder
-    chaliceBase.Size = Vector3.new(1.5, 5.2, 5.2)
-    chaliceBase.CFrame = CFrame.new(pedBasePos.X, currentY + 0.75, pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
+    chaliceBase.Size = Vector3.new(1.1, 4.4, 4.4)
+    chaliceBase.CFrame = CFrame.new(pedBasePos.X, currentY + 0.55, pedBasePos.Z) * CFrame.Angles(0, 0, math.rad(90))
     chaliceBase.Material = Enum.Material.Marble
     chaliceBase.Color = theme.stoneColor
     chaliceBase.Anchored = true
-    chaliceBase.CanCollide = true
+    chaliceBase.CanCollide = false
     chaliceBase.Parent = decorFolder
 
     local chaliceBowl = Instance.new("Part")
     chaliceBowl.Name = "ChaliceBowl"
     chaliceBowl.Shape = Enum.PartType.Ball
-    chaliceBowl.Size = Vector3.new(4.6, 2.2, 4.6)
-    chaliceBowl.CFrame = CFrame.new(pedBasePos.X, currentY + 1.5, pedBasePos.Z)
+    chaliceBowl.Size = Vector3.new(4.2, 1.8, 4.2)
+    chaliceBowl.CFrame = CFrame.new(pedBasePos.X, currentY + 1.1, pedBasePos.Z)
     chaliceBowl.Material = Enum.Material.Neon
     chaliceBowl.Color = theme.secondaryColor
     chaliceBowl.Transparency = 0.2
@@ -221,7 +229,7 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
     chaliceBowl.CanCollide = false
     chaliceBowl.Parent = decorFolder
 
-    -- 2. Kristal Inti Berfaset (Faceted Diamond Crystal Core)
+    -- 2. Kristal Inti Berfaset (ManorCore)
     core.Material = Enum.Material.Neon
     core.Color = theme.primaryColor
     core.Transparency = 0.15
@@ -267,7 +275,7 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
         coreLight.Brightness = 2.4 + (lvl * 0.08)
     end
 
-    -- 3. Pilar Menara Gotik Melingkar (CanCollide = false agar tidak menjebak monster)
+    -- 3. Pilar Menara Gotik Melingkar (CanCollide = false agar jalur ke puncak altar lapang)
     local pillarCount = if lvl >= 10 then 8 else 4
     local ringRadius = 11.2 + (lvl * 0.08)
     local pillarHeight = 4.2 + (lvl * 0.35)
@@ -276,7 +284,7 @@ function MonsterService.RebuildCoreArchitecture(plotModel: Model, level: number)
         local angle = ((i - 1) / pillarCount) * math.pi * 2 + math.rad(45)
         local px = pedBasePos.X + math.cos(angle) * ringRadius
         local pz = pedBasePos.Z + math.sin(angle) * ringRadius
-        local basePillarY = pedBasePos.Y + 1.3
+        local basePillarY = pedBasePos.Y + 0.9
 
         local column = Instance.new("Part")
         column.Name = "GothicColumn_" .. i
@@ -662,7 +670,9 @@ local function createMonsterModel(monsterType: string, waveNumber: number, owner
     humanoid.MaxHealth = scaledMaxHp
     humanoid.Health = scaledMaxHp
     humanoid.WalkSpeed = def.WalkSpeed
-    humanoid.JumpPower = 55
+    humanoid.HipHeight = 2.0
+    humanoid.JumpPower = 45
+    humanoid.MaxSlopeAngle = 89
     humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
     humanoid.Parent = model
 
@@ -955,7 +965,7 @@ function MonsterService.StartWave(player: Player, plotModel: Model)
         for _, mType in ipairs(monstersToSpawn) do
             if state.Status ~= "Active" then break end
 
-            local spawnOffset = Vector3.new(math.random(-14, 14), 3, math.random(33, 36))
+            local spawnOffset = Vector3.new(math.random(-14, 14), 4, math.random(33, 36))
             local worldSpawnPos = (plotBase.CFrame * CFrame.new(spawnOffset)).Position
 
             local monster = createMonsterModel(mType, wave, player.UserId)
@@ -1041,13 +1051,11 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
         local lastPos = rootPart.Position
         local stuckTicks = 0
 
-        while monster.Parent and humanoid.Health > 0 and state.Status == "Active" do
-            local coreLvl = (plotModel:GetAttribute("CoreLevel") :: number?) or 1
-            local altarRadius = 15.5 + (coreLvl * 0.12)
-            local effectiveAttackRange = if def.Ranged
-                then def.AttackRange
-                else (altarRadius + def.AttackRange)
+        -- Jarak serang horizontal langsung di depan kristal ManorCore (melee naik sampai puncak altar)
+        local meleeReach = math.max(def.AttackRange + 1.5, (manorCore.Size.X * 0.5) + 4.0)
+        local effectiveAttackRange = if def.Ranged then def.AttackRange else meleeReach
 
+        while monster.Parent and humanoid.Health > 0 and state.Status == "Active" do
             local flatMonsterPos = Vector3.new(rootPart.Position.X, 0, rootPart.Position.Z)
             local flatCorePos = Vector3.new(manorCore.Position.X, 0, manorCore.Position.Z)
             local dist = (flatMonsterPos - flatCorePos).Magnitude
@@ -1056,7 +1064,7 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
                 local moved = (rootPart.Position - lastPos).Magnitude
                 lastPos = rootPart.Position
 
-                if moved < 0.65 then
+                if moved < 0.75 then
                     stuckTicks += 1
                 else
                     stuckTicks = 0
@@ -1064,11 +1072,15 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
 
                 local groundTarget = Vector3.new(manorCore.Position.X, rootPart.Position.Y, manorCore.Position.Z)
 
-                if stuckTicks >= 2 then
+                -- Langsung loncat naik begitu menyentuh bibir undakan altar agar mulus naik ke puncak platform
+                if stuckTicks >= 1 then
                     humanoid.Jump = true
-                    local lateralOffset = Vector3.new(math.random(-8, 8), 0, math.random(-8, 8))
-                    humanoid:MoveTo(groundTarget + lateralOffset)
-                    stuckTicks = 0
+                    humanoid:MoveTo(groundTarget)
+                    if stuckTicks >= 4 then
+                        local lateralOffset = Vector3.new(math.random(-6, 6), 0, math.random(-6, 6))
+                        humanoid:MoveTo(groundTarget + lateralOffset)
+                        stuckTicks = 0
+                    end
                 else
                     humanoid:MoveTo(groundTarget)
                 end
@@ -1105,7 +1117,7 @@ function MonsterService.RunMonsterAI(monster: Model, monsterType: string, player
 
                 task.wait(def.AttackRate)
             end
-            task.wait(0.35)
+            task.wait(0.25)
         end
     end)
 end

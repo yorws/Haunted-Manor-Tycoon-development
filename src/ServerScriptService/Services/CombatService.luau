@@ -2,11 +2,12 @@
 --[[
     CombatService.luau
     Equips players with the Holy Lantern weapon tool and validates all attacks server-side
-    (rate-limiting, distance checks, ownership checks, Core Level damage scaling).
+    (rate-limiting, distance checks, ownership/admin checks, Core Level damage scaling).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local AdminConfig = require(ReplicatedStorage.Config.AdminConfig)
 local BalanceConfig = require(ReplicatedStorage.Config.BalanceConfig)
 local Network = require(ReplicatedStorage.Modules.Network)
 
@@ -108,7 +109,7 @@ function CombatService.HandleAttack(player: Player, targetMonster: any)
     end
 
     local ownerId = targetMonster:GetAttribute("OwnerUserId")
-    if ownerId ~= nil and ownerId ~= player.UserId then
+    if ownerId ~= nil and ownerId ~= player.UserId and not AdminConfig.IsAdmin(player) then
         return
     end
 
